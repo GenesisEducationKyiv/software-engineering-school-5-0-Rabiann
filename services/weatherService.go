@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/Rabiann/weather-mailer/config"
 )
 
 type WeatherService struct {
-	Address string
-	Key     string
+	Config *config.Configuration
 }
 
 type WeatherResponse struct {
@@ -35,7 +36,7 @@ type Weather struct {
 func (w WeatherService) GetWeather(city string) (Weather, error) {
 	var weather Weather
 	var weatherResponse WeatherResponse
-	url := fmt.Sprintf(w.Address, w.Key, city)
+	url := fmt.Sprintf(w.Config.WeatherApiAddress, w.Config.WeatherApiKey, city)
 
 	resp, err := http.Get(url)
 
