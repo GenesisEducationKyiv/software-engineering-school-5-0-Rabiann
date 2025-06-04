@@ -169,8 +169,7 @@ func (n Notifier) RunSendingPipeline(period Period) {
 
 			url := fmt.Sprintf("%s/api/unsubscribe/%s", baseUrl, token)
 
-			if err = n.mailingService.SendWeatherReport(sub.Email, per, sub.City, weather, url); err != nil {
-			}
+			_ = n.mailingService.SendWeatherReport(sub.Email, per, sub.City, weather, url)
 		}(sub)
 	}
 }

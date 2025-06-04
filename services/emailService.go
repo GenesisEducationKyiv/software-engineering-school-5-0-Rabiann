@@ -71,8 +71,7 @@ func (s MailingService) SendConfirmationLetter(recipient string, confirmationUrl
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
-	s.SendLetter(from, to, subject, body, ctx)
-	return nil
+	return s.SendLetter(from, to, subject, body, ctx)
 }
 
 func (s MailingService) SendWeatherReport(recipient string, period string, city string, weather Weather, unsibscribingUrl string) error {

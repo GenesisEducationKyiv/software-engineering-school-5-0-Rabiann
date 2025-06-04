@@ -70,5 +70,7 @@ func main() {
 		api.GET("/unsubscribe/:token", subscriptionController.Unsubscribe)
 	}
 
-	router.Run(":8000")
+	if err := router.Run(":8000"); err != nil {
+		panic(err)
+	}
 }
