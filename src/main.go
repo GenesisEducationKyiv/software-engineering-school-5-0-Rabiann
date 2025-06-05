@@ -37,7 +37,7 @@ func main() {
 	go notifier.RunNotifier()
 
 	weatherController := controllers.WeatherController{WeatherService: weatherService}
-	subscriptionController := controllers.SubscriptionController{SubscriptionService: subscriptionService, TokenService: tokenService, EmailService: emailService, BaseUrl: base_url}
+	subscriptionController := controllers.SubscriptionController{SubscriptionService: subscriptionService, TokenService: tokenService, EmailService: emailService, BaseUrl: configuration.BaseUrl}
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.StaticFile("/favicon.ico", "./static/weather.ico")

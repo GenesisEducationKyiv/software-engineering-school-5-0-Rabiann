@@ -21,12 +21,12 @@ func LoadEnvironment() *Configuration {
 	var err error
 	_ = godotenv.Load(".env")
 
-	config.baseUrl = os.Getenv("BASE_URL")
-	config.sendgridApiKey = os.Getenv("SENDGRID_API_KEY")
-	config.weatherApiKey = os.Getenv("WEATHER_API_KEY")
-	config.senderMail = os.Getenv("SENDER_MAIL")
-	config.weatherApiAddress = os.Getenv("WEATHER_API_ADDR")
-	config.port, err = strconv.Atoi(os.Getenv("PORT"))
+	config.BaseUrl = os.Getenv("BASE_URL")
+	config.SendgridApiKey = os.Getenv("SENDGRID_API_KEY")
+	config.WeatherApiKey = os.Getenv("WEATHER_API_KEY")
+	config.SenderMail = os.Getenv("SENDER_MAIL")
+	config.WeatherApiAddress = os.Getenv("WEATHER_API_ADDR")
+	config.Port, err = strconv.Atoi(os.Getenv("PORT"))
 	if err != nil {
 		panic(err)
 	}
