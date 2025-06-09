@@ -6,7 +6,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/Rabiann/weather-mailer/config"
+	"github.com/Rabiann/weather-mailer/internal/config"
 )
 
 type WeatherService struct {

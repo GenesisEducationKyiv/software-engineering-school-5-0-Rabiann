@@ -7,17 +7,25 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
+
+type Subscriber struct {
+	Recipient string
+	Period    string
+	City      string
+}
 
 type MailingService struct {
 	Client               *sendgrid.Client
 	ConfirmationTemplate string
 	WeatherTemplate      string
+	Config               *config.Configuration
 }
 
-func NewMailingService() (MailingService, error) {
+func NewMailingService(config *config.Configuration) (MailingService, error) {
 	var ms MailingService
 	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
 	ms.Client = client
@@ -34,6 +42,7 @@ func NewMailingService() (MailingService, error) {
 
 	ms.ConfirmationTemplate = string(confirmationTemplate)
 	ms.WeatherTemplate = string(weatherTemplate)
+	ms.Config = config
 	return ms, nil
 }
 
@@ -69,23 +78,23 @@ func (s MailingService) SendConfirmationLetter(recipient string, confirmationUrl
 	subject := "Confirm Weather Subscription"
 	body := s.buildConfirmationLetter(confirmationUrl)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(s.Config.MailTimeout))
 	defer cancel()
 	return s.SendLetter(from, to, subject, body, ctx)
 }
 
-func (s MailingService) SendWeatherReport(recipient string, period string, city string, weather Weather, unsibscribingUrl string) error {
+func (s MailingService) SendWeatherReport(subscriber Subscriber, weather Weather, unsibscribingUrl string) error {
 	from := mail.Email{
 		Name:    "Reporter",
 		Address: os.Getenv("SENDER_MAIL"),
 	}
 	to := mail.Email{
-		Name:    recipient,
-		Address: recipient,
+		Name:    subscriber.Recipient,
+		Address: subscriber.Recipient,
 	}
 
-	subject := fmt.Sprintf("%s report for %s", period, city)
-	body := s.buildWeatherLetter(city, fmt.Sprintf("%.1f", weather.Temperature), fmt.Sprintf("%.1f", weather.Humidity), weather.Description, unsibscribingUrl)
+	subject := fmt.Sprintf("%s report for %s", subscriber.Period, subscriber.City)
+	body := s.buildWeatherLetter(subscriber.City, fmt.Sprintf("%.1f", weather.Temperature), fmt.Sprintf("%.1f", weather.Humidity), weather.Description, unsibscribingUrl)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()

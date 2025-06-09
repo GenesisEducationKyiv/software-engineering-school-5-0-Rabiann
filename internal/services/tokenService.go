@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Rabiann/weather-mailer/services/models"
+	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )

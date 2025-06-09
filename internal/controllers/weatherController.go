@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/Rabiann/weather-mailer/services"
+	"github.com/Rabiann/weather-mailer/internal/services"
 	"github.com/gin-gonic/gin"
 )
 

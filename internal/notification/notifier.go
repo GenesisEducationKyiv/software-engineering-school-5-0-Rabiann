@@ -2,13 +2,13 @@ package notification
 
 import (
 	"fmt"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/Rabiann/weather-mailer/services"
-	"github.com/Rabiann/weather-mailer/services/models"
+	"github.com/Rabiann/weather-mailer/internal/config"
+	"github.com/Rabiann/weather-mailer/internal/services"
+	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"github.com/go-co-op/gocron/v2"
 )
 
@@ -69,14 +69,16 @@ type Notifier struct {
 	subscriptionService services.SubscriptionService
 	mailingService      services.MailingService
 	tokenService        services.TokenService
+	configuration       *config.Configuration
 }
 
-func NewNotifier(weatherService services.WeatherService, subscriptionService services.SubscriptionService, mailingService services.MailingService, tokenService services.TokenService) Notifier {
+func NewNotifier(weatherService services.WeatherService, subscriptionService services.SubscriptionService, mailingService services.MailingService, tokenService services.TokenService, configuration *config.Configuration) Notifier {
 	return Notifier{
 		weatherService:      weatherService,
 		subscriptionService: subscriptionService,
 		mailingService:      mailingService,
 		tokenService:        tokenService,
+		configuration:       configuration,
 	}
 }
 
@@ -160,16 +162,14 @@ func (n Notifier) RunSendingPipeline(period Period) {
 				return
 			}
 
-			baseUrl := os.Getenv("BASE_URL")
-			if os.Getenv("HTTPS") == "1" {
-				baseUrl = "https://" + baseUrl
-			} else {
-				baseUrl = "http://" + baseUrl
+			url := fmt.Sprintf("%s/api/unsubscribe/%s", n.configuration.BaseUrl, token)
+
+			sub := services.Subscriber{
+				Recipient: sub.Email,
+				Period:    per,
+				City:      sub.City,
 			}
-
-			url := fmt.Sprintf("%s/api/unsubscribe/%s", baseUrl, token)
-
-			_ = n.mailingService.SendWeatherReport(sub.Email, per, sub.City, weather, url)
+			_ = n.mailingService.SendWeatherReport(sub, weather, url)
 		}(sub)
 	}
 }

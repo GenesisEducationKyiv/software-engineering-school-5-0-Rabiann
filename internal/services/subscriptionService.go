@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 
-	"github.com/Rabiann/weather-mailer/services/models"
+	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"gorm.io/gorm"
 )
 
