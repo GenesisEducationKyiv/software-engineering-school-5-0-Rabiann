@@ -5,6 +5,7 @@ on:
       - main
       - master
       - linter-errors
+      - hw1-cleancode
   pull_request:
 
 permissions:
