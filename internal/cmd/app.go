@@ -97,7 +97,7 @@ func (a *App) Run() error {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("Server Shutdown:", err)
+		log.Print("Server Shutdown:", err)
 	}
 
 	<-ctx.Done()
