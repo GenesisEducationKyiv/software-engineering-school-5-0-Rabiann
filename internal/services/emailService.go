@@ -27,7 +27,7 @@ type MailingService struct {
 
 func NewMailingService(config *config.Configuration) (MailingService, error) {
 	var ms MailingService
-	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	client := sendgrid.NewSendClient(config.SendgridApiKey)
 	ms.Client = client
 
 	confirmationTemplate, err := os.ReadFile("./templates/confirmationMail.tmpl")
@@ -46,11 +46,11 @@ func NewMailingService(config *config.Configuration) (MailingService, error) {
 	return ms, nil
 }
 
-func (s MailingService) buildConfirmationLetter(email string) string {
+func (s *MailingService) buildConfirmationLetter(email string) string {
 	return strings.Replace(s.ConfirmationTemplate, "{}", email, 3)
 }
 
-func (s MailingService) buildWeatherLetter(city string, temp string, humid string, description string, unsubscribe string) string {
+func (s *MailingService) buildWeatherLetter(city string, temp string, humid string, description string, unsubscribe string) string {
 	let := strings.Replace(s.WeatherTemplate, "{City}", city, 1)
 	let = strings.Replace(let, "{Temperature}", temp, 1)
 	let = strings.Replace(let, "{Humidity}", humid, 1)
@@ -59,13 +59,13 @@ func (s MailingService) buildWeatherLetter(city string, temp string, humid strin
 	return let
 }
 
-func (s MailingService) SendLetter(from mail.Email, to mail.Email, subject string, content string, ctx context.Context) error {
+func (s *MailingService) SendLetter(from mail.Email, to mail.Email, subject string, content string, ctx context.Context) error {
 	message := mail.NewSingleEmail(&from, subject, &to, "", content)
 	_, err := s.Client.SendWithContext(ctx, message)
 	return err
 }
 
-func (s MailingService) SendConfirmationLetter(recipient string, confirmationUrl string) error {
+func (s *MailingService) SendConfirmationLetter(recipient string, confirmationUrl string) error {
 	from := mail.Email{
 		Name:    "Confirmator",
 		Address: os.Getenv("SENDER_MAIL"),
@@ -83,7 +83,7 @@ func (s MailingService) SendConfirmationLetter(recipient string, confirmationUrl
 	return s.SendLetter(from, to, subject, body, ctx)
 }
 
-func (s MailingService) SendWeatherReport(subscriber Subscriber, weather Weather, unsibscribingUrl string) error {
+func (s *MailingService) SendWeatherReport(subscriber *Subscriber, weather *Weather, unsibscribingUrl string) error {
 	from := mail.Email{
 		Name:    "Reporter",
 		Address: os.Getenv("SENDER_MAIL"),

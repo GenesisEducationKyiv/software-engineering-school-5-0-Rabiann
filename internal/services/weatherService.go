@@ -33,6 +33,11 @@ type Weather struct {
 	Description string  `json:"description"`
 }
 
+func NewWeatherService(config *config.Configuration) WeatherService {
+	return WeatherService{config}
+
+}
+
 func (w WeatherService) GetWeather(city string) (Weather, error) {
 	var weather Weather
 	var weatherResponse WeatherResponse

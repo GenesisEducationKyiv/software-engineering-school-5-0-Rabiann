@@ -16,6 +16,11 @@ type SubscriptionController struct {
 	BaseUrl             string
 }
 
+func NewSubscriptionController(subscriptionService *services.SubscriptionService, tokenService *services.TokenService, emailService *services.MailingService, baseUrl string) SubscriptionController {
+	return SubscriptionController{SubscriptionService: *subscriptionService, TokenService: *tokenService, EmailService: *emailService, BaseUrl: baseUrl}
+
+}
+
 func (s SubscriptionController) Subscribe(ctx *gin.Context) {
 	var subscription services.Subscription
 

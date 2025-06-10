@@ -1,8 +1,13 @@
 package cmd
 
 import (
+	"context"
+	"log"
 	"net/http"
-	"strconv"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
@@ -10,9 +15,24 @@ import (
 	"github.com/Rabiann/weather-mailer/internal/services"
 	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 type App struct{}
+
+func bootstrapDatabase() (*gorm.DB, error) {
+	db := models.ConnectToDatabase()
+
+	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
+		return nil, err
+	}
+
+	if err := db.AutoMigrate(&models.Token{}); err != nil {
+		return nil, err
+	}
+
+	return db, nil
+}
 
 func (a *App) Run() error {
 	configuration, err := config.LoadEnvironment()
@@ -20,29 +40,25 @@ func (a *App) Run() error {
 		return err
 	}
 
-	db := models.ConnectToDatabase()
-
-	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
+	db, err := bootstrapDatabase()
+	if err != nil {
 		return err
 	}
 
-	if err := db.AutoMigrate(&models.Token{}); err != nil {
-		return err
-	}
+	weatherService := services.NewWeatherService(configuration)
+	subscriptionService := services.NewSubscriptionService(db)
+	tokenService := services.NewTokenService(db)
 
-	weatherService := services.WeatherService{Config: configuration}
-	subscriptionService := services.SubscriptionService{Db: db}
-	tokenService := services.TokenService{Db: db}
 	emailService, err := services.NewMailingService(configuration)
 	if err != nil {
 		return err
 	}
 
-	notifier := notification.NewNotifier(weatherService, subscriptionService, emailService, tokenService, configuration)
-	go notifier.RunNotifier()
+	notifier := notification.NewNotifier(&weatherService, &subscriptionService, &emailService, &tokenService)
+	go notifier.RunNotifier(configuration.BaseUrl)
 
-	weatherController := controllers.WeatherController{WeatherService: weatherService}
-	subscriptionController := controllers.SubscriptionController{SubscriptionService: subscriptionService, TokenService: tokenService, EmailService: emailService, BaseUrl: configuration.BaseUrl}
+	weatherController := controllers.NewWeatherController(&weatherService)
+	subscriptionController := controllers.NewSubscriptionController(&subscriptionService, &tokenService, &emailService, configuration.BaseUrl)
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.StaticFile("/favicon.ico", "./static/weather.ico")
@@ -59,9 +75,34 @@ func (a *App) Run() error {
 		api.GET("/unsubscribe/:token", subscriptionController.Unsubscribe)
 	}
 
-	if err := router.Run(strconv.Itoa(configuration.Port)); err != nil {
-		return err
+	srv := &http.Server{
+		Addr:    ":" + configuration.Port,
+		Handler: router.Handler(),
 	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutdown server.")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("Server Shutdown:", err)
+	}
+
+	<-ctx.Done()
+	log.Println("timeout 5 seconds")
+	log.Printf("server exiting")
 
 	return nil
 }

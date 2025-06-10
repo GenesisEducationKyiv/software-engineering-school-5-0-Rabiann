@@ -17,6 +17,10 @@ type SubscriptionService struct {
 	Db *gorm.DB
 }
 
+func NewSubscriptionService(db *gorm.DB) SubscriptionService {
+	return SubscriptionService{db}
+}
+
 func (s SubscriptionService) MapSubscription(subscriptionRequest Subscription) models.Subscription {
 	return models.Subscription{
 		Email:     subscriptionRequest.Email,

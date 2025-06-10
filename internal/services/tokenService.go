@@ -13,6 +13,10 @@ type TokenService struct {
 	Db *gorm.DB
 }
 
+func NewTokenService(db *gorm.DB) TokenService {
+	return TokenService{db}
+}
+
 func (t TokenService) CreateToken(subscriptionId uint) (uuid.UUID, error) {
 	id := uuid.New()
 

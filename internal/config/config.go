@@ -15,7 +15,7 @@ type Configuration struct {
 	WeatherApiKey     string
 	SenderMail        string
 	WeatherApiAddress string
-	Port              int
+	Port              string
 	MailTimeout       int
 }
 
@@ -61,14 +61,9 @@ func LoadEnvironment() (*Configuration, error) {
 		return nil, errors.New("`MAIL_TIMEOUT` should be valid integer")
 	}
 
-	port := os.Getenv("PORT")
-	if port == "" {
+	config.Port = os.Getenv("PORT")
+	if config.Port == "" {
 		return nil, errors.New("`PORT` is not set")
-	}
-
-	config.Port, err = strconv.Atoi(port)
-	if err != nil {
-		return nil, errors.New("`PORT` should exist")
 	}
 
 	return &config, nil

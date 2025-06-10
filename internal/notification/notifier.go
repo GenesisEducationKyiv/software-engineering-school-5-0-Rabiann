@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/services"
 	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"github.com/go-co-op/gocron/v2"
@@ -65,24 +64,22 @@ func (c *AsyncCache) Write(key string, value services.Weather) {
 }
 
 type Notifier struct {
-	weatherService      services.WeatherService
-	subscriptionService services.SubscriptionService
-	mailingService      services.MailingService
-	tokenService        services.TokenService
-	configuration       *config.Configuration
+	weatherService      *services.WeatherService
+	subscriptionService *services.SubscriptionService
+	mailingService      *services.MailingService
+	tokenService        *services.TokenService
 }
 
-func NewNotifier(weatherService services.WeatherService, subscriptionService services.SubscriptionService, mailingService services.MailingService, tokenService services.TokenService, configuration *config.Configuration) Notifier {
+func NewNotifier(weatherService *services.WeatherService, subscriptionService *services.SubscriptionService, mailingService *services.MailingService, tokenService *services.TokenService) Notifier {
 	return Notifier{
 		weatherService:      weatherService,
 		subscriptionService: subscriptionService,
 		mailingService:      mailingService,
 		tokenService:        tokenService,
-		configuration:       configuration,
 	}
 }
 
-func (n Notifier) RunNotifier() {
+func (n Notifier) RunNotifier(baseUrl string) {
 	s, err := gocron.NewScheduler()
 	if err != nil {
 		panic(err)
@@ -95,6 +92,7 @@ func (n Notifier) RunNotifier() {
 		gocron.NewTask(
 			n.RunSendingPipeline,
 			Daily,
+			baseUrl,
 		),
 	)
 
@@ -109,6 +107,7 @@ func (n Notifier) RunNotifier() {
 		gocron.NewTask(
 			n.RunSendingPipeline,
 			Hourly,
+			baseUrl,
 		),
 	)
 
@@ -122,7 +121,7 @@ func (n Notifier) RunNotifier() {
 	select {}
 }
 
-func (n Notifier) RunSendingPipeline(period Period) {
+func (n Notifier) RunSendingPipeline(period Period, baseUrl string) {
 	var subscribers []models.Subscription
 	var per string
 	var err error
@@ -162,14 +161,14 @@ func (n Notifier) RunSendingPipeline(period Period) {
 				return
 			}
 
-			url := fmt.Sprintf("%s/api/unsubscribe/%s", n.configuration.BaseUrl, token)
+			url := fmt.Sprintf("%s/api/unsubscribe/%s", baseUrl, token)
 
 			sub := services.Subscriber{
 				Recipient: sub.Email,
 				Period:    per,
 				City:      sub.City,
 			}
-			_ = n.mailingService.SendWeatherReport(sub, weather, url)
+			_ = n.mailingService.SendWeatherReport(&sub, &weather, url)
 		}(sub)
 	}
 }
