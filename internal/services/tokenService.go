@@ -4,13 +4,17 @@ import (
 	"errors"
 	"time"
 
-	"github.com/Rabiann/weather-mailer/services/models"
+	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type TokenService struct {
 	Db *gorm.DB
+}
+
+func NewTokenService(db *gorm.DB) TokenService {
+	return TokenService{db}
 }
 
 func (t TokenService) CreateToken(subscriptionId uint) (uuid.UUID, error) {

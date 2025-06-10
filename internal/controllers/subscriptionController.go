@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/Rabiann/weather-mailer/services"
+	"github.com/Rabiann/weather-mailer/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -14,6 +14,11 @@ type SubscriptionController struct {
 	TokenService        services.TokenService
 	EmailService        services.MailingService
 	BaseUrl             string
+}
+
+func NewSubscriptionController(subscriptionService *services.SubscriptionService, tokenService *services.TokenService, emailService *services.MailingService, baseUrl string) SubscriptionController {
+	return SubscriptionController{SubscriptionService: *subscriptionService, TokenService: *tokenService, EmailService: *emailService, BaseUrl: baseUrl}
+
 }
 
 func (s SubscriptionController) Subscribe(ctx *gin.Context) {

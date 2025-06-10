@@ -3,12 +3,16 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/Rabiann/weather-mailer/services"
+	"github.com/Rabiann/weather-mailer/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
 type WeatherController struct {
-	WeatherService services.WeatherService
+	weatherService *services.WeatherService
+}
+
+func NewWeatherController(weatherService *services.WeatherService) WeatherController {
+	return WeatherController{weatherService: weatherService}
 }
 
 func (w WeatherController) GetWeather(ctx *gin.Context) {
@@ -18,7 +22,7 @@ func (w WeatherController) GetWeather(ctx *gin.Context) {
 		return
 	}
 
-	weather, err := w.WeatherService.GetWeather(city)
+	weather, err := w.weatherService.GetWeather(city)
 	if err != nil {
 		ctx.JSON(400, nil)
 	}
