@@ -1,5 +1,9 @@
 # Selecting programming language for project
 
+## Status: Accepted
+## Date: Jun 10 2025
+## Author: Pavlo Novosolov (Rabiann)
+
 ## Context and Problem Statement
 There is a need to select good programming language which is able to complete task. The task is building simple web-api application to allow users to subscribe on periodical weather information updates.
 
