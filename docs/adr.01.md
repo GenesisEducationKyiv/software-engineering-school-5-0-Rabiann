@@ -1,7 +1,7 @@
 # Selecting programming language for project
 
-Status: Accepted
-Date: Jun 10 2025
+Status: Accepted<br>
+Date: Jun 10 2025<br>
 Author: Pavlo Novosolov (Rabiann)
 
 ## Context and Problem Statement
