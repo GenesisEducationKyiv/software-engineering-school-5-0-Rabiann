@@ -49,7 +49,7 @@ Users can easily get recent weather updates to be informed.
 |ID|Serial|Unique user identifier|
 |Email|String(255)|User email. Should be unique, as user is allowed to subscribe on only one city update|
 |City|String(255)|City subscribed on|
-|Frequency|String(255)| Notification period `daily` \| `hourly`|
+|Frequency|Enum(daily | hourly)| Notification period|
 |Confirmed|Boolean(False)|If user is validated |
 
 **Tokens**
