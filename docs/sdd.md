@@ -32,8 +32,7 @@ Users can easily get recent weather updates to be informed.
 - As user, I want to be able to select a period of receiving letters to be informed only in periods I want.
 
 ### Integration
-
-![image](images/Editor _ Mermaid Chart-2025-06-09-191322.png)
+![image](images/components.png)
 
 - Raw HTML/CSS Templates. In order to keep simplicity and speed, raw HTML/CSS templates are used. It's totally enough to use them for the task.
 - Main Backend Server. It is responsible for providing API for users. The server is built in 2-layer monolithic way with thick controllers. It's lightweight, easily extendable and simple.
