@@ -133,16 +133,16 @@ Caching: Internal (Hash-Map with read-write-mutex).
 
 ### Level 1 -- System context diagram
 
-![image]("images/C4-1.png")
+![image](images/C4-1.png)
 
 ### Level 2 -- System context diagram
 
-![image]("images/C4-2.drawio.png")
+![image](images/C4-2.drawio.png)
 
 ### Level 3 -- System context diagram
 
-![image]("images/C4-3.drawio.png")
+![image](images/C4-3.drawio.png)
 
 ### Level 4 -- System context diagram
 
-![image]("images/C4-4.drawio.png")
+![image](images/C4-4.drawio.png)
