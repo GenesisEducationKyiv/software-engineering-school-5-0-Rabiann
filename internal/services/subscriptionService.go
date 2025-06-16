@@ -3,7 +3,7 @@ package services
 import (
 	"errors"
 
-	"github.com/Rabiann/weather-mailer/services/models"
+	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"gorm.io/gorm"
 )
 
@@ -15,6 +15,10 @@ type Subscription struct {
 
 type SubscriptionService struct {
 	Db *gorm.DB
+}
+
+func NewSubscriptionService(db *gorm.DB) SubscriptionService {
+	return SubscriptionService{db}
 }
 
 func (s SubscriptionService) MapSubscription(subscriptionRequest Subscription) models.Subscription {
