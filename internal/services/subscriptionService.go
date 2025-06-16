@@ -33,7 +33,7 @@ func NewSubscriptionService(db *gorm.DB) SubscriptionService {
 
 type SubscriptionMapper struct{}
 
-func (_ SubscriptionMapper) MapSubscription(subscriptionRequest Subscription) models.Subscription {
+func MapSubscription(subscriptionRequest Subscription) models.Subscription {
 	return models.Subscription{
 		Email:     subscriptionRequest.Email,
 		Frequency: subscriptionRequest.Frequency,

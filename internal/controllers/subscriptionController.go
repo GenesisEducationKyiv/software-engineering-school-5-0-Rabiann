@@ -22,13 +22,12 @@ func NewSubscriptionController(subscriptionService services.SubscriptionServer, 
 
 func (s SubscriptionController) Subscribe(ctx *gin.Context) {
 	var subscription services.Subscription
-	var mapper services.SubscriptionMapper
 
 	subscription.Email = ctx.PostForm("email")
 	subscription.City = ctx.PostForm("city")
 	subscription.Frequency = ctx.PostForm("period")
 
-	id, err := s.SubscriptionService.AddSubscription(mapper.MapSubscription(subscription))
+	id, err := s.SubscriptionService.AddSubscription(services.MapSubscription(subscription))
 	if err != nil {
 		ctx.HTML(409, "alreadysubscribed.html", gin.H{})
 		return
