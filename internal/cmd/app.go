@@ -54,11 +54,11 @@ func (a *App) Run() error {
 		return err
 	}
 
-	notifier := notification.NewNotifier(&weatherService, &subscriptionService, &emailService, &tokenService)
+	notifier := notification.NewNotifier(&weatherService, &subscriptionService, emailService, &tokenService)
 	go notifier.RunNotifier(configuration.BaseUrl)
 
 	weatherController := controllers.NewWeatherController(&weatherService)
-	subscriptionController := controllers.NewSubscriptionController(&subscriptionService, &tokenService, &emailService, configuration.BaseUrl)
+	subscriptionController := controllers.NewSubscriptionController(&subscriptionService, &tokenService, emailService, configuration.BaseUrl)
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.StaticFile("/favicon.ico", "./static/weather.ico")

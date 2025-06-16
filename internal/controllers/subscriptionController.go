@@ -10,25 +10,25 @@ import (
 )
 
 type SubscriptionController struct {
-	SubscriptionService services.SubscriptionService
-	TokenService        services.TokenService
-	EmailService        services.MailingService
+	SubscriptionService services.SubscriptionServer
+	TokenService        services.TokenServer
+	EmailService        services.MailingServer
 	BaseUrl             string
 }
 
-func NewSubscriptionController(subscriptionService *services.SubscriptionService, tokenService *services.TokenService, emailService *services.MailingService, baseUrl string) SubscriptionController {
-	return SubscriptionController{SubscriptionService: *subscriptionService, TokenService: *tokenService, EmailService: *emailService, BaseUrl: baseUrl}
-
+func NewSubscriptionController(subscriptionService services.SubscriptionServer, tokenService services.TokenServer, emailService services.MailingServer, baseUrl string) SubscriptionController {
+	return SubscriptionController{SubscriptionService: subscriptionService, TokenService: tokenService, EmailService: emailService, BaseUrl: baseUrl}
 }
 
 func (s SubscriptionController) Subscribe(ctx *gin.Context) {
 	var subscription services.Subscription
+	var mapper services.SubscriptionMapper
 
 	subscription.Email = ctx.PostForm("email")
 	subscription.City = ctx.PostForm("city")
 	subscription.Frequency = ctx.PostForm("period")
 
-	id, err := s.SubscriptionService.AddSubscription(s.SubscriptionService.MapSubscription(subscription))
+	id, err := s.SubscriptionService.AddSubscription(mapper.MapSubscription(subscription))
 	if err != nil {
 		ctx.HTML(409, "alreadysubscribed.html", gin.H{})
 		return
@@ -61,7 +61,7 @@ func (s SubscriptionController) Confirm(ctx *gin.Context) {
 		return
 	}
 
-	subscriberId, err := s.TokenService.GetSubscription(token)
+	subscriberId, err := s.TokenService.GetSubscriptionOfToken(token)
 	if err != nil {
 		handleTokenErr(ctx, err, 400)
 		return
@@ -87,7 +87,7 @@ func (s SubscriptionController) Unsubscribe(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "please use correct token"})
 		return
 	}
-	subscriberId, err := s.TokenService.GetSubscription(token)
+	subscriberId, err := s.TokenService.GetSubscriptionOfToken(token)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, nil)
 		return

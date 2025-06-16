@@ -7,6 +7,16 @@ import (
 	"gorm.io/gorm"
 )
 
+type SubscriptionServer interface {
+	GetSubscriptions() ([]models.Subscription, error)
+	GetSubscriptionById(id uint) (models.Subscription, error)
+	AddSubscription(subscription models.Subscription) (uint, error)
+	ActivateSubscription(id uint) (string, error)
+	UpdateSubscription(id uint, new_subscription models.Subscription) error
+	DeleteSubscription(id uint) error
+	Confirm(id uint) error
+}
+
 type Subscription struct {
 	Email     string `json:"email"`
 	City      string `json:"city"`
@@ -21,7 +31,9 @@ func NewSubscriptionService(db *gorm.DB) SubscriptionService {
 	return SubscriptionService{db}
 }
 
-func (s SubscriptionService) MapSubscription(subscriptionRequest Subscription) models.Subscription {
+type SubscriptionMapper struct{}
+
+func (_ SubscriptionMapper) MapSubscription(subscriptionRequest Subscription) models.Subscription {
 	return models.Subscription{
 		Email:     subscriptionRequest.Email,
 		Frequency: subscriptionRequest.Frequency,

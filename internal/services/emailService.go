@@ -20,38 +20,93 @@ type Subscriber struct {
 
 type MailingService struct {
 	Client               *sendgrid.Client
-	ConfirmationTemplate string
-	WeatherTemplate      string
+	ConfirmationTemplate *ConfirmationTemplate
+	WeatherTemplate      *WeatherTemplate
 	Config               *config.Configuration
 }
 
-func NewMailingService(config *config.Configuration) (MailingService, error) {
+type MailingServer interface {
+	SendConfirmationLetter(string, string) error
+	sendLetter(MailOptions, context.Context) error
+	SendWeatherReport(*Subscriber, *Weather, string) error
+}
+
+type Template struct {
+	text string
+}
+
+type ConfirmationTemplate struct {
+	template *Template
+}
+
+type WeatherTemplate struct {
+	template *Template
+}
+
+type MailOptions struct {
+	from    mail.Email
+	to      mail.Email
+	subject string
+	content string
+}
+
+func NewTemplate(filepath string) (*Template, error) {
+	text, err := os.ReadFile(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	var template Template
+
+	template.text = string(text)
+	return &template, nil
+}
+
+func NewConfirmationTemplate(filepath string) (*ConfirmationTemplate, error) {
+	template, err := NewTemplate(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfirmationTemplate{template: template}, nil
+}
+
+func NewWeatherTemplate(filepath string) (*WeatherTemplate, error) {
+	template, err := NewTemplate(filepath)
+	if err != nil {
+		return nil, err
+	}
+
+	return &WeatherTemplate{template: template}, nil
+}
+
+func NewMailingService(config *config.Configuration) (*MailingService, error) {
 	var ms MailingService
 	client := sendgrid.NewSendClient(config.SendgridApiKey)
 	ms.Client = client
 
-	confirmationTemplate, err := os.ReadFile("./templates/confirmationMail.tmpl")
+	confirmationTemplate, err := NewConfirmationTemplate("./templates/confirmationMail.tmpl")
 	if err != nil {
-		return ms, err
+		return nil, err
 	}
 
-	weatherTemplate, err := os.ReadFile("./templates/weatherMail.tmpl")
+	weatherTemplate, err := NewWeatherTemplate("./templates/weatherMail.tmpl")
 	if err != nil {
-		return ms, err
+		return nil, err
 	}
 
-	ms.ConfirmationTemplate = string(confirmationTemplate)
-	ms.WeatherTemplate = string(weatherTemplate)
+	ms.ConfirmationTemplate = confirmationTemplate
+	ms.WeatherTemplate = weatherTemplate
 	ms.Config = config
-	return ms, nil
+	return &ms, nil
 }
 
-func (s *MailingService) buildConfirmationLetter(email string) string {
-	return strings.Replace(s.ConfirmationTemplate, "{}", email, 3)
+func (ct *ConfirmationTemplate) buildConfirmationLetter(email string) string {
+	return strings.Replace(ct.template.text, "{}", email, 3)
 }
 
-func (s *MailingService) buildWeatherLetter(city string, temp string, humid string, description string, unsubscribe string) string {
-	let := strings.Replace(s.WeatherTemplate, "{City}", city, 1)
+func (wt *WeatherTemplate) buildWeatherLetter(city string, temp string, humid string, description string, unsubscribe string) string {
+	let := strings.Replace(wt.template.text, "{City}", city, 1)
 	let = strings.Replace(let, "{Temperature}", temp, 1)
 	let = strings.Replace(let, "{Humidity}", humid, 1)
 	let = strings.Replace(let, "{UnsubscribeLink}", unsubscribe, 1)
@@ -59,8 +114,8 @@ func (s *MailingService) buildWeatherLetter(city string, temp string, humid stri
 	return let
 }
 
-func (s *MailingService) SendLetter(from mail.Email, to mail.Email, subject string, content string, ctx context.Context) error {
-	message := mail.NewSingleEmail(&from, subject, &to, "", content)
+func (s *MailingService) sendLetter(options MailOptions, ctx context.Context) error {
+	message := mail.NewSingleEmail(&options.from, options.subject, &options.to, "", options.content)
 	_, err := s.Client.SendWithContext(ctx, message)
 	return err
 }
@@ -76,11 +131,18 @@ func (s *MailingService) SendConfirmationLetter(recipient string, confirmationUr
 	}
 
 	subject := "Confirm Weather Subscription"
-	body := s.buildConfirmationLetter(confirmationUrl)
+	body := s.ConfirmationTemplate.buildConfirmationLetter(confirmationUrl)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(s.Config.MailTimeout))
 	defer cancel()
-	return s.SendLetter(from, to, subject, body, ctx)
+	options := MailOptions{
+		from:    from,
+		to:      to,
+		subject: subject,
+		content: body,
+	}
+
+	return s.sendLetter(options, ctx)
 }
 
 func (s *MailingService) SendWeatherReport(subscriber *Subscriber, weather *Weather, unsibscribingUrl string) error {
@@ -94,9 +156,16 @@ func (s *MailingService) SendWeatherReport(subscriber *Subscriber, weather *Weat
 	}
 
 	subject := fmt.Sprintf("%s report for %s", subscriber.Period, subscriber.City)
-	body := s.buildWeatherLetter(subscriber.City, fmt.Sprintf("%.1f", weather.Temperature), fmt.Sprintf("%.1f", weather.Humidity), weather.Description, unsibscribingUrl)
+	body := s.WeatherTemplate.buildWeatherLetter(subscriber.City, fmt.Sprintf("%.1f", weather.Temperature), fmt.Sprintf("%.1f", weather.Humidity), weather.Description, unsibscribingUrl)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
-	return s.SendLetter(from, to, subject, body, ctx)
+	options := MailOptions{
+		from:    from,
+		to:      to,
+		subject: subject,
+		content: body,
+	}
+
+	return s.sendLetter(options, ctx)
 }

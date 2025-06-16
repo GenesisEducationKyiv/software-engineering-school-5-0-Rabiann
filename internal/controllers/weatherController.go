@@ -8,7 +8,7 @@ import (
 )
 
 type WeatherController struct {
-	weatherService *services.WeatherService
+	weatherService services.WeatherServer
 }
 
 func NewWeatherController(weatherService *services.WeatherService) WeatherController {

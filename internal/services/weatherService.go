@@ -9,6 +9,10 @@ import (
 	"github.com/Rabiann/weather-mailer/internal/config"
 )
 
+type WeatherServer interface {
+	GetWeather(string) (Weather, error)
+}
+
 type WeatherService struct {
 	Config *config.Configuration
 }
@@ -38,7 +42,7 @@ func NewWeatherService(config *config.Configuration) WeatherService {
 
 }
 
-func (w WeatherService) GetWeather(city string) (Weather, error) {
+func (w *WeatherService) GetWeather(city string) (Weather, error) {
 	var weather Weather
 	var weatherResponse WeatherResponse
 	url := fmt.Sprintf(w.Config.WeatherApiAddress, w.Config.WeatherApiKey, city)

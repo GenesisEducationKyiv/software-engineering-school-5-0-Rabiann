@@ -9,6 +9,12 @@ import (
 	"gorm.io/gorm"
 )
 
+type TokenServer interface {
+	CreateToken(subscriptionId uint) (uuid.UUID, error)
+	GetSubscriptionOfToken(id uuid.UUID) (uint, error)
+	UseToken(id uuid.UUID) error
+}
+
 type TokenService struct {
 	Db *gorm.DB
 }
@@ -30,7 +36,7 @@ func (t TokenService) CreateToken(subscriptionId uint) (uuid.UUID, error) {
 	return id, result.Error
 }
 
-func (t TokenService) GetSubscription(id uuid.UUID) (uint, error) {
+func (t TokenService) GetSubscriptionOfToken(id uuid.UUID) (uint, error) {
 	var token models.Token
 	token.ID = id
 
