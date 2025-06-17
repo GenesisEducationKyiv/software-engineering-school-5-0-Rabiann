@@ -15,6 +15,7 @@ type SubscriptionServer interface {
 	UpdateSubscription(id uint, new_subscription models.Subscription) error
 	DeleteSubscription(id uint) error
 	Confirm(id uint) error
+	GetActiveSubscriptions(per string) ([]models.Subscription, error)
 }
 
 type Subscription struct {
@@ -78,6 +79,17 @@ func (s SubscriptionService) ActivateSubscription(id uint) (string, error) {
 	subscription.Confirmed = true
 	result = s.Db.Save(subscription)
 	return subscription.Email, result.Error
+}
+
+func (s SubscriptionService) GetActiveSubscriptions(per string) ([]models.Subscription, error) {
+	var subscribers []models.Subscription
+	result := s.Db.Where("frequency = ? and confirmed = true", per).Find(&subscribers)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return subscribers, nil
 }
 
 func (s SubscriptionService) UpdateSubscription(id uint, new_subscription models.Subscription) error {

@@ -64,13 +64,13 @@ func (c *AsyncCache) Write(key string, value services.Weather) {
 }
 
 type Notifier struct {
-	weatherService      *services.WeatherService
-	subscriptionService *services.SubscriptionService
-	mailingService      *services.MailingService
-	tokenService        *services.TokenService
+	weatherService      services.WeatherServer
+	subscriptionService services.SubscriptionServer
+	mailingService      services.MailingServer
+	tokenService        services.TokenServer
 }
 
-func NewNotifier(weatherService *services.WeatherService, subscriptionService *services.SubscriptionService, mailingService *services.MailingService, tokenService *services.TokenService) Notifier {
+func NewNotifier(weatherService services.WeatherServer, subscriptionService services.SubscriptionServer, mailingService services.MailingServer, tokenService services.TokenServer) Notifier {
 	return Notifier{
 		weatherService:      weatherService,
 		subscriptionService: subscriptionService,
@@ -121,8 +121,7 @@ func (n Notifier) RunNotifier(baseUrl string) {
 	select {}
 }
 
-func (n Notifier) RunSendingPipeline(period Period, baseUrl string) {
-	var subscribers []models.Subscription
+func (n Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 	var per string
 	var err error
 
@@ -135,9 +134,9 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string) {
 		per = "hourly"
 	}
 
-	result := n.subscriptionService.Db.Where("frequency = ? and confirmed = true", per).Find(&subscribers)
-	if result.Error != nil {
-		panic(result.Error)
+	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per)
+	if err != nil {
+		return err
 	}
 
 	for _, sub := range subscribers {
@@ -171,4 +170,6 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string) {
 			_ = n.mailingService.SendWeatherReport(&sub, &weather, url)
 		}(sub)
 	}
+
+	return nil
 }
