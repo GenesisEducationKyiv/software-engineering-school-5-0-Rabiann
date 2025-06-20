@@ -1,74 +1,21 @@
 package services
 
 import (
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
+	"context"
 
-	"github.com/Rabiann/weather-mailer/internal/config"
+	"github.com/Rabiann/weather-mailer/internal/external"
+	"github.com/Rabiann/weather-mailer/internal/models"
 )
 
-type WeatherServer interface {
-	GetWeather(string) (Weather, error)
-}
-
 type WeatherService struct {
-	Config *config.Configuration
+	weatherProvider *external.WeatherProvider
 }
 
-type WeatherResponse struct {
-	Current `json:"current"`
+func NewWeatherService(weatherProvider *external.WeatherProvider) *WeatherService {
+	return &WeatherService{weatherProvider}
 }
 
-type Current struct {
-	Temperature float64 `json:"temp_c"`
-	Humidity    float64 `json:"humidity"`
-	Condition   `json:"condition"`
-}
+func (w *WeatherService) GetWeather(city string, ctx_ context.Context, cancel context.CancelFunc) (models.Weather, error) {
+	return w.weatherProvider.GetWeather(city, ctx_, cancel)
 
-type Condition struct {
-	Text string `json:"text"`
-}
-
-type Weather struct {
-	Temperature float64 `json:"temperature"`
-	Humidity    float64 `json:"humidity"`
-	Description string  `json:"description"`
-}
-
-func NewWeatherService(config *config.Configuration) WeatherService {
-	return WeatherService{config}
-
-}
-
-func (w *WeatherService) GetWeather(city string) (Weather, error) {
-	var weather Weather
-	var weatherResponse WeatherResponse
-	url := fmt.Sprintf(w.Config.WeatherApiAddress, w.Config.WeatherApiKey, city)
-
-	resp, err := http.Get(url)
-
-	if resp.StatusCode == http.StatusBadRequest {
-		return weather, fmt.Errorf("city `%s` not exists", city)
-	}
-
-	if err != nil {
-		return weather, err
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return weather, err
-	}
-
-	if err := json.Unmarshal(body, &weatherResponse); err != nil {
-		return weather, err
-	}
-
-	weather.Description = weatherResponse.Text
-	weather.Humidity = weatherResponse.Humidity
-	weather.Temperature = weatherResponse.Temperature
-
-	return weather, nil
 }
