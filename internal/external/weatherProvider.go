@@ -13,10 +13,11 @@ import (
 
 type WeatherProvider struct {
 	config *config.Configuration
+	client *http.Client
 }
 
 func NewWeatherProvider(config *config.Configuration) *WeatherProvider {
-	return &WeatherProvider{config}
+	return &WeatherProvider{config, &http.Client{}}
 }
 
 func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context, cancel context.CancelFunc) (models.Weather, error) {
@@ -29,9 +30,7 @@ func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context, cancel c
 		return weather, err
 	}
 
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
+	resp, err := w.client.Do(req)
 	if err != nil {
 		return weather, err
 	}
