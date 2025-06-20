@@ -52,7 +52,7 @@ func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Conte
 	}
 
 	if subscription.Confirmed {
-		return "", errors.New("Subscription already confirmed")
+		return "", errors.New("subscription already confirmed")
 	}
 
 	subscription.Confirmed = true

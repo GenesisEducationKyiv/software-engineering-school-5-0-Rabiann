@@ -25,9 +25,10 @@ func NewWeatherController(weatherService WeatherService) WeatherController {
 
 func (w WeatherController) GetWeather(ctx *gin.Context) {
 	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
+	defer cancel()
 	city, ok := ctx.GetQuery("city")
 	if !ok {
-		ctx.JSON(400, nil)
+		ctx.JSON(401, nil)
 		return
 	}
 

@@ -35,8 +35,6 @@ func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context, cancel c
 		return weather, err
 	}
 
-	defer resp.Body.Close()
-
 	if resp.StatusCode == http.StatusBadRequest {
 		return weather, fmt.Errorf("city `%s` not exists", city)
 	}
