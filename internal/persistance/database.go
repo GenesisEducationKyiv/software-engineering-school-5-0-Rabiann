@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/Rabiann/weather-mailer/internal/models"
 	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -48,4 +50,29 @@ func ConnectToDatabase() *gorm.DB {
 	}
 
 	return db
+}
+
+func Migrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&models.Token{}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func SetupInMemoryDb() (*gorm.DB, error) {
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	if err = Migrate(db); err != nil {
+		return nil, err
+	}
+
+	return db, nil
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
 	"github.com/Rabiann/weather-mailer/internal/external"
-	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/Rabiann/weather-mailer/internal/notification"
 	"github.com/Rabiann/weather-mailer/internal/persistance"
 	"github.com/Rabiann/weather-mailer/internal/services"
@@ -25,11 +24,7 @@ type App struct{}
 func bootstrapDatabase() (*gorm.DB, error) {
 	db := persistance.ConnectToDatabase()
 
-	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
-		return nil, err
-	}
-
-	if err := db.AutoMigrate(&models.Token{}); err != nil {
+	if err := persistance.Migrate(db); err != nil {
 		return nil, err
 	}
 
@@ -50,11 +45,12 @@ func (a *App) Run() error {
 	subscriptionRepository := persistance.NewSubscriptionRepository(db)
 	tokenRepository := persistance.NewTokenRepository(db)
 	weatherProvider := external.NewWeatherProvider(configuration)
+	mailingProvider := external.NewMailingProvider(configuration)
 
 	weatherService := services.NewWeatherService(weatherProvider)
 	subscriptionDataService := services.NewSubscriptionService(subscriptionRepository)
 	tokenService := services.NewTokenService(tokenRepository)
-	emailService, err := services.NewMailingService(configuration)
+	emailService, err := services.NewMailingService(mailingProvider, configuration)
 	if err != nil {
 		return err
 	}
