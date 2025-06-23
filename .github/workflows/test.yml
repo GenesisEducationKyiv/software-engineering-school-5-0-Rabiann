@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Start Services with Docker Compose
         run: docker compose up -d
-        working-directory: "../../ci/."
+        working-directory: "./ci"
 
       - name: Build and Run End to End Tests
         run: |
