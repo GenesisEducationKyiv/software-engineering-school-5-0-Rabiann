@@ -1,10 +1,6 @@
 FROM golang:alpine AS builder
-
 WORKDIR /build
-
-ADD ../go.mod .
-
-COPY .. .
+COPY . .
 
 RUN go build -o api .
 
