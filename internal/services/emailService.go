@@ -36,12 +36,12 @@ func NewMailingService(mailProvider MailingProvider, config *config.Configuratio
 	var ms MailingService
 	ms.Provider = mailProvider
 
-	confirmationTemplate, err := NewConfirmationTemplate("../../templates/confirmationMail.tmpl")
+	confirmationTemplate, err := NewConfirmationTemplate("templates/confirmationMail.tmpl")
 	if err != nil {
 		return nil, err
 	}
 
-	weatherTemplate, err := NewWeatherTemplate("../../templates/weatherMail.tmpl")
+	weatherTemplate, err := NewWeatherTemplate("templates/weatherMail.tmpl")
 	if err != nil {
 		return nil, err
 	}

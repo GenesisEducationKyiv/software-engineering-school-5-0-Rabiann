@@ -1,4 +1,23 @@
 services:
+  unit-tests:
+    build:
+      context: './unit'
+    depends_on: []
+
+  integration-tests:
+    build:
+      context: './integration'
+    depends_on: []
+
+  e2e-tests:
+    build:
+      context: '../playwright'
+    depends_on:
+      api:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
   postgres:
     container_name: subscriptions_db
     image: postgres:13.3
@@ -21,11 +40,11 @@ services:
 
   api:
     container_name: subscriptions_api
-    build: .
+    build: ..
     environment:
       POSTGRES_HOST: subscriptions_db
     env_file:
-      - .env
+      - ../.env
     depends_on:
       postgres:
         condition: service_healthy

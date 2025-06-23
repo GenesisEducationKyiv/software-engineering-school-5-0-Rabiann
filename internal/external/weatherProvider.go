@@ -21,6 +21,7 @@ func NewWeatherProvider(config *config.Configuration) *WeatherProvider {
 }
 
 func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context, cancel context.CancelFunc) (models.Weather, error) {
+	defer cancel()
 	var weather models.Weather
 	var weatherResponse models.WeatherResponse
 	url := fmt.Sprintf(w.config.WeatherApiAddress, w.config.WeatherApiKey, city)

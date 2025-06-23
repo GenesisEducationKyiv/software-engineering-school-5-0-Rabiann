@@ -59,6 +59,7 @@ func (s *SubscriptionControlService) Subscribe(subscription models.Subscription,
 }
 
 func (s *SubscriptionControlService) Confirm(ctx *gin.Context, ctx_ context.Context, cancel context.CancelFunc) error {
+	defer cancel()
 	token, err := uuid.Parse(ctx.Param("token"))
 	if err != nil {
 		return err

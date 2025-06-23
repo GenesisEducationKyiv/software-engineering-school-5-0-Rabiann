@@ -29,9 +29,7 @@ func TestCreateToken(t *testing.T) {
 	token, err := repo.CreateToken(id, context.TODO(), func() {})
 	assert.NoError(t, err)
 
-	tokenModel := models.Token{
-		ID: token,
-	}
+	tokenModel := models.Token{}
 
 	db.First(&tokenModel)
 	require.Equal(t, tokenModel.ID, token)

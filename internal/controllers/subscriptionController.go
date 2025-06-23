@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -47,7 +48,7 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 	}
 
 	if err := s.SubscriptionService.Subscribe(subscription, ctx, ctx_, cancel); err != nil {
-		ctx.JSON(400, gin.H{"status": "bad request"})
+		ctx.JSON(300, gin.H{"status": err.Error()})
 		return
 	}
 
@@ -55,14 +56,15 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 }
 
 func (s *SubscriptionController) Confirm(ctx *gin.Context) {
-	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
+	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 100*time.Hour)
 	defer cancel()
-	handleTokenErr := func(ctx *gin.Context, err error, code int) {
-		ctx.HTML(code, "registrationfailed.html", gin.H{})
-	}
+
+	//ctx_ := context.TODO()
+	//cancel := func() {}
 
 	if err := s.SubscriptionService.Confirm(ctx, ctx_, cancel); err != nil {
-		handleTokenErr(ctx, err, 400)
+		fmt.Println(ctx_.Err().Error())
+		ctx.HTML(400, "registrationfailed.html", gin.H{})
 		return
 	}
 

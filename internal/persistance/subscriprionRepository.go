@@ -3,7 +3,6 @@ package persistance
 import (
 	"context"
 	"errors"
-
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"gorm.io/gorm"
 )
@@ -33,7 +32,6 @@ func (s *SubscriptionRepository) GetSubscriptionById(id uint, ctx context.Contex
 }
 
 func (s *SubscriptionRepository) AddSubscription(subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) (uint, error) {
-	defer cancel()
 	if s.Db == nil {
 		return 0, nil
 	}
@@ -42,11 +40,10 @@ func (s *SubscriptionRepository) AddSubscription(subscription models.Subscriptio
 }
 
 func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Context, cancel context.CancelFunc) (string, error) {
-	defer cancel()
 	var subscription models.Subscription
 	subscription.ID = id
 
-	result := s.Db.WithContext(ctx).Find(&subscription)
+	result := s.Db.Find(&subscription)
 	if result.Error != nil {
 		return "", result.Error
 	}
@@ -61,7 +58,6 @@ func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Conte
 }
 
 func (s *SubscriptionRepository) GetActiveSubscriptions(per string, ctx context.Context, cancel context.CancelFunc) ([]models.Subscription, error) {
-	defer cancel()
 	var subscribers []models.Subscription
 	result := s.Db.WithContext(ctx).Where("frequency = ? and confirmed = true", per).Find(&subscribers)
 
@@ -73,7 +69,6 @@ func (s *SubscriptionRepository) GetActiveSubscriptions(per string, ctx context.
 }
 
 func (s *SubscriptionRepository) UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) error {
-	defer cancel()
 	subscription := models.Subscription{ID: id}
 
 	if id != new_subscription.ID {
@@ -97,7 +92,6 @@ func (s *SubscriptionRepository) UpdateSubscription(id uint, new_subscription mo
 }
 
 func (s *SubscriptionRepository) DeleteSubscription(id uint, ctx context.Context, cancel context.CancelFunc) error {
-	defer cancel()
 	result := s.Db.WithContext(ctx).Delete(&models.Subscription{}, id)
 	return result.Error
 }

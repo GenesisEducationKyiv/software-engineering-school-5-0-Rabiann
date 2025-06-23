@@ -24,7 +24,7 @@ func TestGetSubscriptions(t *testing.T) {
 	db := setup()
 	model := models.Subscription{
 		ID:    1,
-		Email: "abc@mail.com",
+		Email: "a@mail.com",
 	}
 
 	db.Create(&model)
@@ -40,8 +40,8 @@ func TestGetSubscriptions(t *testing.T) {
 func TestGetSubscriptionById(t *testing.T) {
 	db := setup()
 	model := models.Subscription{
-		ID:    1,
-		Email: "abc@mail.com",
+		ID:    2,
+		Email: "b@mail.com",
 	}
 
 	db.Create(&model)
@@ -58,8 +58,8 @@ func TestGetSubscriptionById(t *testing.T) {
 func TestAddSubscription(t *testing.T) {
 	db := setup()
 	model := models.Subscription{
-		ID:    1,
-		Email: "abc@mail.com",
+		ID:    3,
+		Email: "c@mail.com",
 	}
 
 	repo := persistance.NewSubscriptionRepository(db)
@@ -77,8 +77,8 @@ func TestAddSubscription(t *testing.T) {
 func TestActivateSubscription(t *testing.T) {
 	db := setup()
 	model := models.Subscription{
-		ID:        1,
-		Email:     "abc@mail.com",
+		ID:        4,
+		Email:     "d@mail.com",
 		Confirmed: false,
 	}
 
@@ -101,15 +101,15 @@ func TestActivateSubscription(t *testing.T) {
 func TestGetActiveSubscriptions(t *testing.T) {
 	db := setup()
 	model1 := models.Subscription{
-		ID:        1,
-		Email:     "abcd@mail.com",
+		ID:        5,
+		Email:     "e@mail.com",
 		Confirmed: true,
 		Frequency: "daily",
 	}
 
 	model2 := models.Subscription{
-		ID:        2,
-		Email:     "abc@mail.com",
+		ID:        6,
+		Email:     "f@mail.com",
 		Confirmed: false,
 		Frequency: "daily",
 	}
@@ -128,14 +128,14 @@ func TestGetActiveSubscriptions(t *testing.T) {
 func TestUpdateSubscription(t *testing.T) {
 	db := setup()
 	model_old := models.Subscription{
-		ID:        1,
-		Email:     "abc@mail.com",
+		ID:        7,
+		Email:     "g@mail.com",
 		Confirmed: false,
 	}
 
 	model_new := models.Subscription{
-		ID:        1,
-		Email:     "def@mail.com",
+		ID:        7,
+		Email:     "h@mail.com",
 		Confirmed: true,
 	}
 
@@ -154,8 +154,8 @@ func TestUpdateSubscription(t *testing.T) {
 func TestDeleteSubscription(t *testing.T) {
 	db := setup()
 	model := models.Subscription{
-		ID:    1,
-		Email: "abc@mail.com",
+		ID:    8,
+		Email: "i@mail.com",
 	}
 
 	db.Create(&model)

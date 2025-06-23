@@ -140,7 +140,7 @@ func (n Notifier) RunNotifier(baseUrl string) {
 	select {}
 }
 
-func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context.Context, cancel context.CancelFunc) error {
+func (n Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 	var per string
 	var err error
 
@@ -153,6 +153,8 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context
 		per = "hourly"
 	}
 
+	ctx_, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+
 	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per, ctx_, cancel)
 	if err != nil {
 		return err
@@ -161,12 +163,13 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context
 	for _, sub := range subscribers {
 		semaphore.Acquire()
 		go func(models.Subscription) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer semaphore.Release()
 			city := strings.ToLower(sub.City)
 			weather, ok := cache.Read(city)
 
 			if !ok {
-				weather, err = n.weatherService.GetWeather(city, ctx_, cancel)
+				weather, err = n.weatherService.GetWeather(city, ctx, cancel)
 				if err != nil {
 					return
 				}
