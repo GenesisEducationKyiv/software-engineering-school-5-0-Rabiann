@@ -26,7 +26,6 @@ func setupWeatherServer(response models.WeatherResponse) *httptest.Server {
 
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(body)
-		return
 	}))
 
 	return mockServer
