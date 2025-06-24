@@ -20,12 +20,12 @@ func NewWeatherProvider(config *config.Configuration) *WeatherProvider {
 	return &WeatherProvider{config, &http.Client{}}
 }
 
-func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context, cancel context.CancelFunc) (models.Weather, error) {
+func (w *WeatherProvider) GetWeather(city string, ctx context.Context) (models.Weather, error) {
 	var weather models.Weather
 	var weatherResponse models.WeatherResponse
 	url := fmt.Sprintf(w.config.WeatherApiAddress, w.config.WeatherApiKey, city)
 
-	req, err := http.NewRequestWithContext(ctx_, "GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		return weather, err
 	}

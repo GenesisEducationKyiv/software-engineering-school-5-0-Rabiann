@@ -12,12 +12,12 @@ type (
 	}
 
 	SubscriptionRepository interface {
-		AddSubscription(subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) (uint, error)
-		ActivateSubscription(id uint, ctx context.Context, cancel context.CancelFunc) (string, error)
-		GetActiveSubscriptions(per string, ctx context.Context, cancel context.CancelFunc) ([]models.Subscription, error)
-		UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) error
-		DeleteSubscription(id uint, ctx context.Context, cancel context.CancelFunc) error
-		Confirm(id uint, ctx context.Context, cancel context.CancelFunc) error
+		AddSubscription(subscription models.Subscription, ctx context.Context) (uint, error)
+		ActivateSubscription(id uint, ctx context.Context) (string, error)
+		GetActiveSubscriptions(per string, ctx context.Context) ([]models.Subscription, error)
+		UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context) error
+		DeleteSubscription(id uint, ctx context.Context) error
+		Confirm(id uint, ctx context.Context) error
 	}
 )
 
@@ -34,26 +34,26 @@ func MapSubscription(subscriptionRequest models.Subscription) models.Subscriptio
 	}
 }
 
-func (s *SubscriptionDataService) AddSubscription(subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) (uint, error) {
-	return s.subscriptionRepository.AddSubscription(subscription, ctx, cancel)
+func (s *SubscriptionDataService) AddSubscription(subscription models.Subscription, ctx context.Context) (uint, error) {
+	return s.subscriptionRepository.AddSubscription(subscription, ctx)
 }
 
-func (s SubscriptionDataService) ActivateSubscription(id uint, ctx context.Context, cancel context.CancelFunc) (string, error) {
-	return s.subscriptionRepository.ActivateSubscription(id, ctx, cancel)
+func (s SubscriptionDataService) ActivateSubscription(id uint, ctx context.Context) (string, error) {
+	return s.subscriptionRepository.ActivateSubscription(id, ctx)
 }
 
-func (s SubscriptionDataService) GetActiveSubscriptions(per string, ctx context.Context, cancel context.CancelFunc) ([]models.Subscription, error) {
-	return s.subscriptionRepository.GetActiveSubscriptions(per, ctx, cancel)
+func (s SubscriptionDataService) GetActiveSubscriptions(per string, ctx context.Context) ([]models.Subscription, error) {
+	return s.subscriptionRepository.GetActiveSubscriptions(per, ctx)
 }
 
-func (s SubscriptionDataService) UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) error {
-	return s.subscriptionRepository.UpdateSubscription(id, new_subscription, ctx, cancel)
+func (s SubscriptionDataService) UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context) error {
+	return s.subscriptionRepository.UpdateSubscription(id, new_subscription, ctx)
 }
 
-func (s SubscriptionDataService) DeleteSubscription(id uint, ctx context.Context, cancel context.CancelFunc) error {
-	return s.subscriptionRepository.DeleteSubscription(id, ctx, cancel)
+func (s SubscriptionDataService) DeleteSubscription(id uint, ctx context.Context) error {
+	return s.subscriptionRepository.DeleteSubscription(id, ctx)
 }
 
-func (s SubscriptionDataService) Confirm(id uint, ctx context.Context, cancel context.CancelFunc) error {
-	return s.subscriptionRepository.Confirm(id, ctx, cancel)
+func (s SubscriptionDataService) Confirm(id uint, ctx context.Context) error {
+	return s.subscriptionRepository.Confirm(id, ctx)
 }

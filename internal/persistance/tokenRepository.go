@@ -20,8 +20,7 @@ func NewTokenRepository(db *gorm.DB) *TokenRepository {
 	return &TokenRepository{db}
 }
 
-func (t *TokenRepository) CreateToken(subscriptionId uint, ctx context.Context, cancel context.CancelFunc) (uuid.UUID, error) {
-	defer cancel()
+func (t *TokenRepository) CreateToken(subscriptionId uint, ctx context.Context) (uuid.UUID, error) {
 	id := uuid.New()
 
 	token := models.Token{
@@ -34,20 +33,18 @@ func (t *TokenRepository) CreateToken(subscriptionId uint, ctx context.Context, 
 	return id, result.Error
 }
 
-func (t *TokenRepository) GetSubscriptionOfToken(id uuid.UUID, ctx context.Context, cancel context.CancelFunc) (uint, error) {
+func (t *TokenRepository) GetSubscriptionOfToken(id uuid.UUID, ctx context.Context) (uint, error) {
 	var token models.Token
 	token.ID = id
-	defer cancel()
 
 	result := t.Db.WithContext(ctx).Find(&token)
 	return token.SubscriptionID, result.Error
 }
 
-func (t *TokenRepository) UseToken(id uuid.UUID, ctx context.Context, cancel context.CancelFunc) error {
+func (t *TokenRepository) UseToken(id uuid.UUID, ctx context.Context) error {
 	token := models.Token{
 		ID: id,
 	}
-	defer cancel()
 
 	result := t.Db.WithContext(ctx).First(&token)
 	if result.Error != nil {
