@@ -31,7 +31,7 @@ func TestGetSubscriptions(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	subs, err := repo.GetSubscriptions(context.TODO(), func() {})
+	subs, err := repo.GetSubscriptions(context.TODO())
 	assert.NoError(t, err)
 
 	require.Equal(t, 1, len(subs))
@@ -48,7 +48,7 @@ func TestGetSubscriptionById(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	sub, err := repo.GetSubscriptionById(model.ID, context.TODO(), func() {})
+	sub, err := repo.GetSubscriptionById(model.ID, context.TODO())
 	assert.NoError(t, err)
 
 	require.NotNil(t, sub)
@@ -64,10 +64,10 @@ func TestAddSubscription(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	id, err := repo.AddSubscription(model, context.TODO(), func() {})
+	id, err := repo.AddSubscription(model, context.TODO())
 	assert.NoError(t, err)
 
-	sub, err := repo.GetSubscriptionById(id, context.TODO(), func() {})
+	sub, err := repo.GetSubscriptionById(id, context.TODO())
 	assert.NoError(t, err)
 
 	require.NotNil(t, sub)
@@ -86,13 +86,13 @@ func TestActivateSubscription(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	email, err := repo.ActivateSubscription(model.ID, context.TODO(), func() {})
+	email, err := repo.ActivateSubscription(model.ID, context.TODO())
 	assert.NoError(t, err)
 
 	require.NotNil(t, email)
 	require.Equal(t, model.Email, email)
 
-	sub, err := repo.GetSubscriptionById(model.ID, context.TODO(), func() {})
+	sub, err := repo.GetSubscriptionById(model.ID, context.TODO())
 	assert.NoError(t, err)
 	assert.NotNil(t, sub)
 	require.True(t, sub.Confirmed)
@@ -119,7 +119,7 @@ func TestGetActiveSubscriptions(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	subs, err := repo.GetActiveSubscriptions("daily", context.TODO(), func() {})
+	subs, err := repo.GetActiveSubscriptions("daily", context.TODO())
 	assert.NoError(t, err)
 
 	require.Equal(t, 1, len(subs))
@@ -143,9 +143,9 @@ func TestUpdateSubscription(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	err := repo.UpdateSubscription(model_old.ID, model_new, context.TODO(), func() {})
+	err := repo.UpdateSubscription(model_old.ID, model_new, context.TODO())
 	assert.NoError(t, err)
-	sub, err := repo.GetSubscriptionById(model_old.ID, context.TODO(), func() {})
+	sub, err := repo.GetSubscriptionById(model_old.ID, context.TODO())
 	assert.NoError(t, err)
 	assert.NotNil(t, sub)
 	require.Equal(t, model_new.Email, sub.Email)
@@ -162,9 +162,9 @@ func TestDeleteSubscription(t *testing.T) {
 
 	repo := persistance.NewSubscriptionRepository(db)
 
-	err := repo.DeleteSubscription(model.ID, context.TODO(), func() {})
+	err := repo.DeleteSubscription(model.ID, context.TODO())
 	assert.NoError(t, err)
 
-	_, err = repo.GetSubscriptionById(model.ID, context.TODO(), func() {})
+	_, err = repo.GetSubscriptionById(model.ID, context.TODO())
 	assert.Error(t, err)
 }

@@ -17,21 +17,19 @@ func NewSubscriptionRepository(db *gorm.DB) *SubscriptionRepository {
 	return &SubscriptionRepository{db}
 }
 
-func (s *SubscriptionRepository) GetSubscriptions(ctx context.Context, cancel context.CancelFunc) ([]models.Subscription, error) {
-	defer cancel()
+func (s *SubscriptionRepository) GetSubscriptions(ctx context.Context) ([]models.Subscription, error) {
 	var subscriptions []models.Subscription
 	result := s.Db.WithContext(ctx).Find(&subscriptions)
 	return subscriptions, result.Error
 }
 
-func (s *SubscriptionRepository) GetSubscriptionById(id uint, ctx context.Context, cancel context.CancelFunc) (models.Subscription, error) {
-	defer cancel()
+func (s *SubscriptionRepository) GetSubscriptionById(id uint, ctx context.Context) (models.Subscription, error) {
 	subscription := models.Subscription{ID: id}
 	result := s.Db.WithContext(ctx).First(&subscription)
 	return subscription, result.Error
 }
 
-func (s *SubscriptionRepository) AddSubscription(subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) (uint, error) {
+func (s *SubscriptionRepository) AddSubscription(subscription models.Subscription, ctx context.Context) (uint, error) {
 	if s.Db == nil {
 		return 0, nil
 	}
@@ -39,7 +37,7 @@ func (s *SubscriptionRepository) AddSubscription(subscription models.Subscriptio
 	return subscription.ID, result.Error
 }
 
-func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Context, cancel context.CancelFunc) (string, error) {
+func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Context) (string, error) {
 	var subscription models.Subscription
 	subscription.ID = id
 
@@ -57,7 +55,7 @@ func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Conte
 	return subscription.Email, result.Error
 }
 
-func (s *SubscriptionRepository) GetActiveSubscriptions(per string, ctx context.Context, cancel context.CancelFunc) ([]models.Subscription, error) {
+func (s *SubscriptionRepository) GetActiveSubscriptions(per string, ctx context.Context) ([]models.Subscription, error) {
 	var subscribers []models.Subscription
 	result := s.Db.WithContext(ctx).Where("frequency = ? and confirmed = true", per).Find(&subscribers)
 
@@ -68,7 +66,7 @@ func (s *SubscriptionRepository) GetActiveSubscriptions(per string, ctx context.
 	return subscribers, nil
 }
 
-func (s *SubscriptionRepository) UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context, cancel context.CancelFunc) error {
+func (s *SubscriptionRepository) UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context) error {
 	subscription := models.Subscription{ID: id}
 
 	if id != new_subscription.ID {
@@ -91,7 +89,7 @@ func (s *SubscriptionRepository) UpdateSubscription(id uint, new_subscription mo
 	return result.Error
 }
 
-func (s *SubscriptionRepository) DeleteSubscription(id uint, ctx context.Context, cancel context.CancelFunc) error {
+func (s *SubscriptionRepository) DeleteSubscription(id uint, ctx context.Context) error {
 	result := s.Db.WithContext(ctx).Delete(&models.Subscription{}, id)
 	return result.Error
 }

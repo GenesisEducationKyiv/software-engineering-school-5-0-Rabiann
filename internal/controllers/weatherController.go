@@ -16,7 +16,7 @@ type (
 	}
 
 	WeatherService interface {
-		GetWeather(string, context.Context, context.CancelFunc) (models.Weather, error)
+		GetWeather(string, context.Context) (models.Weather, error)
 	}
 )
 
@@ -34,7 +34,7 @@ func (w WeatherController) GetWeather(ctx *gin.Context) {
 		return
 	}
 
-	weather, err := w.weatherService.GetWeather(city, ctx_, cancel)
+	weather, err := w.weatherService.GetWeather(city, ctx_)
 	if err != nil {
 		ctx.JSON(400, nil)
 	}

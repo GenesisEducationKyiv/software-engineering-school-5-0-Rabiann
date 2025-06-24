@@ -26,7 +26,7 @@ func TestCreateToken(t *testing.T) {
 
 	repo := persistance.NewTokenRepository(db)
 
-	token, err := repo.CreateToken(id, context.TODO(), func() {})
+	token, err := repo.CreateToken(id, context.TODO())
 	assert.NoError(t, err)
 
 	tokenModel := models.Token{}
@@ -41,10 +41,10 @@ func TestGetSubscriptionOfToken(t *testing.T) {
 
 	repo := persistance.NewTokenRepository(db)
 
-	token, err := repo.CreateToken(id, context.TODO(), func() {})
+	token, err := repo.CreateToken(id, context.TODO())
 	assert.NoError(t, err)
 
-	mailId, err := repo.GetSubscriptionOfToken(token, context.TODO(), func() {})
+	mailId, err := repo.GetSubscriptionOfToken(token, context.TODO())
 	assert.NoError(t, err)
 
 	require.Equal(t, id, mailId)
@@ -56,13 +56,13 @@ func TestUseToken(t *testing.T) {
 
 	repo := persistance.NewTokenRepository(db)
 
-	token, err := repo.CreateToken(id, context.TODO(), func() {})
+	token, err := repo.CreateToken(id, context.TODO())
 	assert.NoError(t, err)
 
-	err = repo.UseToken(token, context.TODO(), func() {})
+	err = repo.UseToken(token, context.TODO())
 	assert.NoError(t, err)
 
-	id, err = repo.GetSubscriptionOfToken(token, context.TODO(), func() {})
+	id, err = repo.GetSubscriptionOfToken(token, context.TODO())
 	assert.NoError(t, err)
 
 	require.Equal(t, uint(0), id)

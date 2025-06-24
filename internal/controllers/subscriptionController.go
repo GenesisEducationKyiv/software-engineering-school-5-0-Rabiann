@@ -2,13 +2,10 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"net/http"
-	"time"
-
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"net/http"
 )
 
 type (
@@ -21,15 +18,15 @@ type (
 	}
 
 	TokenService interface {
-		CreateToken(uint, context.Context, context.CancelFunc) (uuid.UUID, error)
-		GetSubscriptionOfToken(uuid.UUID, context.Context, context.CancelFunc) (uint, error)
-		UseToken(uuid.UUID, context.Context, context.CancelFunc) error
+		CreateToken(uint, context.Context) (uuid.UUID, error)
+		GetSubscriptionOfToken(uuid.UUID, context.Context) (uint, error)
+		UseToken(uuid.UUID, context.Context) error
 	}
 
 	SubscriptionService interface {
-		Subscribe(models.Subscription, *gin.Context, context.Context, context.CancelFunc) error
-		Confirm(*gin.Context, context.Context, context.CancelFunc) error
-		Unsubscribe(*gin.Context, context.Context, context.CancelFunc) error
+		Subscribe(models.Subscription, *gin.Context) error
+		Confirm(*gin.Context) error
+		Unsubscribe(*gin.Context) error
 	}
 )
 
@@ -39,15 +36,13 @@ func NewSubscriptionController(subscriptionService SubscriptionService) Subscrip
 
 func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 	var subscription models.Subscription
-	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
-	defer cancel()
 
 	if err := ctx.ShouldBind(&subscription); err != nil {
 		ctx.JSON(400, gin.H{"status": "bad request"})
 		return
 	}
 
-	if err := s.SubscriptionService.Subscribe(subscription, ctx, ctx_, cancel); err != nil {
+	if err := s.SubscriptionService.Subscribe(subscription, ctx); err != nil {
 		ctx.JSON(300, gin.H{"status": err.Error()})
 		return
 	}
@@ -56,14 +51,8 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 }
 
 func (s *SubscriptionController) Confirm(ctx *gin.Context) {
-	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 100*time.Hour)
-	defer cancel()
 
-	//ctx_ := context.TODO()
-	//cancel := func() {}
-
-	if err := s.SubscriptionService.Confirm(ctx, ctx_, cancel); err != nil {
-		fmt.Println(ctx_.Err().Error())
+	if err := s.SubscriptionService.Confirm(ctx); err != nil {
 		ctx.HTML(400, "registrationfailed.html", gin.H{})
 		return
 	}
@@ -72,9 +61,7 @@ func (s *SubscriptionController) Confirm(ctx *gin.Context) {
 }
 
 func (s SubscriptionController) Unsubscribe(ctx *gin.Context) {
-	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
-	defer cancel()
-	if err := s.SubscriptionService.Unsubscribe(ctx, ctx_, cancel); err != nil {
+	if err := s.SubscriptionService.Unsubscribe(ctx); err != nil {
 		ctx.JSON(400, gin.H{"status": "invalid params"})
 		return
 	}

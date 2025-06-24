@@ -15,7 +15,7 @@ func NewWeatherService(weatherProvider *external.WeatherProvider) *WeatherServic
 	return &WeatherService{weatherProvider}
 }
 
-func (w *WeatherService) GetWeather(city string, ctx_ context.Context, cancel context.CancelFunc) (models.Weather, error) {
-	return w.weatherProvider.GetWeather(city, ctx_, cancel)
+func (w *WeatherService) GetWeather(city string, ctx_ context.Context) (models.Weather, error) {
+	return w.weatherProvider.GetWeather(city, ctx_)
 
 }

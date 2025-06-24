@@ -29,7 +29,7 @@ type (
 )
 
 func (m *MockMailingProvider) SendLetter(options dto.MailOptions, ctx context.Context) error {
-	res := m.Called(options)
+	res := m.Called(options, ctx)
 	return res.Error(0)
 }
 
@@ -119,8 +119,8 @@ func BuildMocks(recipient string) (
 		Content: "WEATHER",
 	}
 
-	providerMock.On("SendLetter", options1).Return(nil)
-	providerMock.On("SendLetter", options2).Return(nil)
+	providerMock.On("SendLetter", options1, mock.Anything).Return(nil)
+	providerMock.On("SendLetter", options2, mock.Anything).Return(nil)
 	mockConfTemp.On("BuildConfirmationLetter", "CONFIRMATION URL").Return("BODY")
 	mockWeatherTemp.On("BuildWeatherLetter", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return("BODY")
 	service := services.MailingService{
