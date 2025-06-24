@@ -77,15 +77,15 @@ type (
 	}
 
 	TokenService interface {
-		CreateToken(uint, context.Context, context.CancelFunc) (uuid.UUID, error)
+		CreateToken(uint, context.Context) (uuid.UUID, error)
 	}
 
 	SubscriptionService interface {
-		GetActiveSubscriptions(string, context.Context, context.CancelFunc) ([]models.Subscription, error)
+		GetActiveSubscriptions(string, context.Context) ([]models.Subscription, error)
 	}
 
 	WeatherService interface {
-		GetWeather(string, context.Context, context.CancelFunc) (models.Weather, error)
+		GetWeather(string, context.Context) (models.Weather, error)
 	}
 )
 
@@ -140,7 +140,7 @@ func (n Notifier) RunNotifier(baseUrl string) {
 	select {}
 }
 
-func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context.Context, cancel context.CancelFunc) error {
+func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context.Context) error {
 	var per string
 	var err error
 
@@ -153,7 +153,7 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context
 		per = "hourly"
 	}
 
-	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per, ctx_, cancel)
+	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per, ctx_)
 	if err != nil {
 		return err
 	}
@@ -166,7 +166,7 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context
 			weather, ok := cache.Read(city)
 
 			if !ok {
-				weather, err = n.weatherService.GetWeather(city, ctx_, cancel)
+				weather, err = n.weatherService.GetWeather(city, ctx_)
 				if err != nil {
 					return
 				}
@@ -174,7 +174,7 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context
 				cache.Write(sub.City, weather)
 			}
 
-			token, err := n.tokenService.CreateToken(sub.ID, ctx_, cancel)
+			token, err := n.tokenService.CreateToken(sub.ID, ctx_)
 			if err != nil {
 				return
 			}

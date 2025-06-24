@@ -2,11 +2,9 @@ package controllers
 
 import (
 	"context"
-	"net/http"
-	"time"
-
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 type (
@@ -15,7 +13,7 @@ type (
 	}
 
 	WeatherService interface {
-		GetWeather(string, context.Context, context.CancelFunc) (models.Weather, error)
+		GetWeather(string, context.Context) (models.Weather, error)
 	}
 )
 
@@ -24,15 +22,13 @@ func NewWeatherController(weatherService WeatherService) WeatherController {
 }
 
 func (w WeatherController) GetWeather(ctx *gin.Context) {
-	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
-	defer cancel()
 	city, ok := ctx.GetQuery("city")
 	if !ok {
 		ctx.JSON(401, nil)
 		return
 	}
 
-	weather, err := w.weatherService.GetWeather(city, ctx_, cancel)
+	weather, err := w.weatherService.GetWeather(city, ctx)
 	if err != nil {
 		ctx.JSON(400, nil)
 	}
