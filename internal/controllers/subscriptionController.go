@@ -18,15 +18,15 @@ type (
 	}
 
 	TokenService interface {
-		CreateToken(uint, context.Context, context.CancelFunc) (uuid.UUID, error)
-		GetSubscriptionOfToken(uuid.UUID, context.Context, context.CancelFunc) (uint, error)
-		UseToken(uuid.UUID, context.Context, context.CancelFunc) error
+		CreateToken(uint, context.Context) (uuid.UUID, error)
+		GetSubscriptionOfToken(uuid.UUID, context.Context) (uint, error)
+		UseToken(uuid.UUID, context.Context) error
 	}
 
 	SubscriptionService interface {
-		Subscribe(models.Subscription, *gin.Context) error
-		Confirm(*gin.Context) error
-		Unsubscribe(*gin.Context) error
+		Subscribe(models.Subscription, context.Context) error
+		Confirm(uuid.UUID, context.Context) error
+		Unsubscribe(uuid.UUID, context.Context) error
 	}
 )
 
@@ -50,12 +50,14 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 }
 
 func (s *SubscriptionController) Confirm(ctx *gin.Context) {
-	handleTokenErr := func(ctx *gin.Context, err error, code int) {
-		ctx.HTML(code, "registrationfailed.html", gin.H{})
+	token, err := uuid.Parse(ctx.Param("token"))
+	if err != nil {
+		ctx.HTML(400, "registrationfailed.html", gin.H{})
+		return
 	}
 
-	if err := s.SubscriptionService.Confirm(ctx); err != nil {
-		handleTokenErr(ctx, err, 400)
+	if err := s.SubscriptionService.Confirm(token, ctx); err != nil {
+		ctx.HTML(400, "registrationfailed.html", gin.H{})
 		return
 	}
 
@@ -63,7 +65,12 @@ func (s *SubscriptionController) Confirm(ctx *gin.Context) {
 }
 
 func (s SubscriptionController) Unsubscribe(ctx *gin.Context) {
-	if err := s.SubscriptionService.Unsubscribe(ctx); err != nil {
+	token, err := uuid.Parse(ctx.Param("token"))
+	if err != nil {
+		ctx.HTML(400, "registrationfailed.html", gin.H{})
+		return
+	}
+	if err := s.SubscriptionService.Unsubscribe(token, ctx); err != nil {
 		ctx.JSON(400, gin.H{"status": "invalid params"})
 		return
 	}
