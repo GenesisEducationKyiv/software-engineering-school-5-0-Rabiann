@@ -1,0 +1,37 @@
+name: test.yml
+on:
+  push
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Run Unit Tests
+        run: |
+          docker build -f ./test/unit/Dockerfile -t go-unit-tests .
+          docker run --rm go-unit-tests
+
+  integration-tests:
+    runs-on: ubuntu-latest
+    env:
+      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+      WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and Run Integration Tests
+        run: |
+          docker build -f ./test/integration/Dockerfile -t go-integration-tests .
+          docker run --rm go-integration-tests
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start Services with Docker Compose
+        run: docker compose up -d
+
+      - name: Build and Run End to End Tests
+        run: |
+          docker build -f ./playwright/Dockerfile -t go-e2e-tests ./playwright
+          docker run --rm --network=host go-e2e-tests

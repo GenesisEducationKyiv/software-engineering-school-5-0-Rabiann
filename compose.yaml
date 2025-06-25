@@ -24,6 +24,8 @@ services:
     build: .
     environment:
       POSTGRES_HOST: subscriptions_db
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      WEATHER_API_KEY: ${WEATHER_API_KEY}
     env_file:
       - .env
     depends_on:

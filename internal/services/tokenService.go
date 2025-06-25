@@ -1,63 +1,34 @@
 package services
 
 import (
-	"errors"
-	"time"
-
-	"github.com/Rabiann/weather-mailer/internal/services/models"
+	"context"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
-type TokenService struct {
-	Db *gorm.DB
+type (
+	TokenService struct {
+		tokenRepository TokenRepository
+	}
+
+	TokenRepository interface {
+		CreateToken(subscriptionId uint, ctx context.Context) (uuid.UUID, error)
+		GetSubscriptionOfToken(id uuid.UUID, ctx context.Context) (uint, error)
+		UseToken(id uuid.UUID, ctx context.Context) error
+	}
+)
+
+func NewTokenService(tokenRepository TokenRepository) *TokenService {
+	return &TokenService{tokenRepository}
 }
 
-func NewTokenService(db *gorm.DB) TokenService {
-	return TokenService{db}
+func (t TokenService) CreateToken(subscriptionId uint, ctx context.Context) (uuid.UUID, error) {
+	return t.tokenRepository.CreateToken(subscriptionId, ctx)
 }
 
-func (t TokenService) CreateToken(subscriptionId uint) (uuid.UUID, error) {
-	id := uuid.New()
-
-	token := models.Token{
-		ID:             id,
-		SubscriptionID: subscriptionId,
-		Expires:        time.Now().Add(time.Hour * 24),
-	}
-
-	result := t.Db.Create(&token)
-	return id, result.Error
+func (t TokenService) GetSubscriptionOfToken(id uuid.UUID, ctx context.Context) (uint, error) {
+	return t.tokenRepository.GetSubscriptionOfToken(id, ctx)
 }
 
-func (t TokenService) GetSubscription(id uuid.UUID) (uint, error) {
-	var token models.Token
-	token.ID = id
-
-	result := t.Db.Find(&token)
-	return token.SubscriptionID, result.Error
-}
-
-func (t TokenService) UseToken(id uuid.UUID) error {
-	token := models.Token{
-		ID: id,
-	}
-
-	result := t.Db.First(&token)
-	if result.Error != nil {
-		return result.Error
-	}
-
-	if time.Now().Compare(token.Expires) > 0 {
-		if result := t.Db.Delete(token); result.Error != nil {
-			return result.Error
-		}
-		return errors.New("token already expired")
-	}
-
-	if result := t.Db.Delete(token); result.Error != nil {
-		return result.Error
-	}
-
-	return nil
+func (t TokenService) UseToken(id uuid.UUID, ctx context.Context) error {
+	return t.tokenRepository.UseToken(id, ctx)
 }
