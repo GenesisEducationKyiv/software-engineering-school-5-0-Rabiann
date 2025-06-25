@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
-	"github.com/Rabiann/weather-mailer/internal/external"
+	"github.com/Rabiann/weather-mailer/internal/external/weather"
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/Rabiann/weather-mailer/internal/services"
 	"github.com/gin-gonic/gin"
@@ -37,7 +37,7 @@ func setupWeatherTest(mockServerUrl string) controllers.WeatherController {
 		WeatherApiAddress: mockServerUrl + "/weather?key=%s&q=%s&aqi=no",
 	}
 
-	weatherProvider := external.NewWeatherProvider(configuration)
+	weatherProvider := weather.NewWeatherProvider(configuration)
 	weatherService := services.NewWeatherService(weatherProvider)
 	weatherController := controllers.NewWeatherController(weatherService)
 	return weatherController

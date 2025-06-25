@@ -2,20 +2,24 @@ package services
 
 import (
 	"context"
-
-	"github.com/Rabiann/weather-mailer/internal/external"
 	"github.com/Rabiann/weather-mailer/internal/models"
 )
 
-type WeatherService struct {
-	weatherProvider *external.WeatherProvider
-}
+type (
+	WeatherService struct {
+		weatherProvider WeatherProvider
+	}
 
-func NewWeatherService(weatherProvider *external.WeatherProvider) *WeatherService {
+	WeatherProvider interface {
+		GetWeather(city string, ctx context.Context) (models.Weather, error)
+	}
+)
+
+func NewWeatherService(weatherProvider WeatherProvider) *WeatherService {
 	return &WeatherService{weatherProvider}
 }
 
-func (w *WeatherService) GetWeather(city string, ctx_ context.Context) (models.Weather, error) {
-	return w.weatherProvider.GetWeather(city, ctx_)
+func (w *WeatherService) GetWeather(city string, ctx context.Context) (models.Weather, error) {
+	return w.weatherProvider.GetWeather(city, ctx)
 
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"github.com/Rabiann/weather-mailer/internal/external/weather"
 	"log"
 	"net/http"
 	"os"
@@ -44,7 +45,8 @@ func (a *App) Run() error {
 
 	subscriptionRepository := persistance.NewSubscriptionRepository(db)
 	tokenRepository := persistance.NewTokenRepository(db)
-	weatherProvider := external.NewWeatherProvider(configuration)
+	//weatherProvider := weather.NewWeatherProvider(configuration)
+	weatherProvider := weather.NewWeatherProviderWithLaydown()
 	mailingProvider := external.NewMailingProvider(configuration)
 
 	weatherService := services.NewWeatherService(weatherProvider)
