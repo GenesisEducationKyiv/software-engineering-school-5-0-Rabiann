@@ -11,9 +11,11 @@ import (
 
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
+	"github.com/Rabiann/weather-mailer/internal/external"
+	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/Rabiann/weather-mailer/internal/notification"
+	"github.com/Rabiann/weather-mailer/internal/persistance"
 	"github.com/Rabiann/weather-mailer/internal/services"
-	"github.com/Rabiann/weather-mailer/internal/services/models"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -21,7 +23,7 @@ import (
 type App struct{}
 
 func bootstrapDatabase() (*gorm.DB, error) {
-	db := models.ConnectToDatabase()
+	db := persistance.ConnectToDatabase()
 
 	if err := db.AutoMigrate(&models.Subscription{}); err != nil {
 		return nil, err
@@ -45,20 +47,24 @@ func (a *App) Run() error {
 		return err
 	}
 
-	weatherService := services.NewWeatherService(configuration)
-	subscriptionService := services.NewSubscriptionService(db)
-	tokenService := services.NewTokenService(db)
+	subscriptionRepository := persistance.NewSubscriptionRepository(db)
+	tokenRepository := persistance.NewTokenRepository(db)
+	weatherProvider := external.NewWeatherProvider(configuration)
 
+	weatherService := services.NewWeatherService(weatherProvider)
+	subscriptionDataService := services.NewSubscriptionService(subscriptionRepository)
+	tokenService := services.NewTokenService(tokenRepository)
 	emailService, err := services.NewMailingService(configuration)
 	if err != nil {
 		return err
 	}
 
-	notifier := notification.NewNotifier(&weatherService, &subscriptionService, &emailService, &tokenService)
+	subscriptionService := services.NewSubscriptionBusinessService(subscriptionDataService, tokenService, emailService, configuration.BaseUrl)
+	notifier := notification.NewNotifier(weatherService, subscriptionDataService, emailService, tokenService)
 	go notifier.RunNotifier(configuration.BaseUrl)
 
-	weatherController := controllers.NewWeatherController(&weatherService)
-	subscriptionController := controllers.NewSubscriptionController(&subscriptionService, &tokenService, &emailService, configuration.BaseUrl)
+	weatherController := controllers.NewWeatherController(weatherService)
+	subscriptionController := controllers.NewSubscriptionController(subscriptionService)
 	router := gin.Default()
 	router.LoadHTMLGlob("templates/*")
 	router.StaticFile("/favicon.ico", "./static/weather.ico")
