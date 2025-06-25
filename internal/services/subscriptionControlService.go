@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/Rabiann/weather-mailer/internal/models"
-	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
@@ -38,7 +37,7 @@ func NewSubscriptionBusinessService(subscriptionService SubscriptionDataServer, 
 	return &SubscriptionControlService{subscriptionService, tokenService, emailService, baseUrl}
 }
 
-func (s *SubscriptionControlService) Subscribe(subscription models.Subscription, ctx *gin.Context) error {
+func (s *SubscriptionControlService) Subscribe(subscription models.Subscription, ctx context.Context) error {
 	id, err := s.subscriptionDataService.AddSubscription(MapSubscription(subscription), ctx)
 	if err != nil {
 		return err
@@ -58,12 +57,7 @@ func (s *SubscriptionControlService) Subscribe(subscription models.Subscription,
 	return nil
 }
 
-func (s *SubscriptionControlService) Confirm(ctx *gin.Context) error {
-	token, err := uuid.Parse(ctx.Param("token"))
-	if err != nil {
-		return err
-	}
-
+func (s *SubscriptionControlService) Confirm(token uuid.UUID, ctx context.Context) error {
 	subscriberId, err := s.tokenService.GetSubscriptionOfToken(token, ctx)
 	if err != nil {
 		return err
@@ -81,11 +75,7 @@ func (s *SubscriptionControlService) Confirm(ctx *gin.Context) error {
 	return nil
 }
 
-func (s *SubscriptionControlService) Unsubscribe(ctx *gin.Context) error {
-	token, err := uuid.Parse(ctx.Param("token"))
-	if err != nil {
-		return err
-	}
+func (s *SubscriptionControlService) Unsubscribe(token uuid.UUID, ctx context.Context) error {
 	subscriberId, err := s.tokenService.GetSubscriptionOfToken(token, ctx)
 	if err != nil {
 		return err

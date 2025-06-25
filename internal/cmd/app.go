@@ -83,7 +83,7 @@ func (a *App) Run() error {
 	}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && http.ErrServerClosed != err {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()

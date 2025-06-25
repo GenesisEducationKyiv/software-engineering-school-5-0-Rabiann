@@ -24,9 +24,9 @@ type (
 	}
 
 	SubscriptionService interface {
-		Subscribe(models.Subscription, *gin.Context) error
-		Confirm(*gin.Context) error
-		Unsubscribe(*gin.Context) error
+		Subscribe(models.Subscription, context.Context) error
+		Confirm(uuid.UUID, context.Context) error
+		Unsubscribe(uuid.UUID, context.Context) error
 	}
 )
 
@@ -51,8 +51,12 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 }
 
 func (s *SubscriptionController) Confirm(ctx *gin.Context) {
-
-	if err := s.SubscriptionService.Confirm(ctx); err != nil {
+	token, err := uuid.Parse(ctx.Param("token"))
+	if err != nil {
+		ctx.JSON(400, gin.H{"status": "bad request"})
+		return
+	}
+	if err := s.SubscriptionService.Confirm(token, ctx); err != nil {
 		ctx.HTML(400, "registrationfailed.html", gin.H{})
 		return
 	}
@@ -60,8 +64,13 @@ func (s *SubscriptionController) Confirm(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "registration.html", gin.H{})
 }
 
-func (s SubscriptionController) Unsubscribe(ctx *gin.Context) {
-	if err := s.SubscriptionService.Unsubscribe(ctx); err != nil {
+func (s *SubscriptionController) Unsubscribe(ctx *gin.Context) {
+	token, err := uuid.Parse(ctx.Param("token"))
+	if err != nil {
+		ctx.JSON(400, gin.H{"status": "bad request"})
+		return
+	}
+	if err := s.SubscriptionService.Unsubscribe(token, ctx); err != nil {
 		ctx.JSON(400, gin.H{"status": "invalid params"})
 		return
 	}
