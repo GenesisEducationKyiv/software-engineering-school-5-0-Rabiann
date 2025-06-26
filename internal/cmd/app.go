@@ -2,13 +2,16 @@ package cmd
 
 import (
 	"context"
-	"github.com/Rabiann/weather-mailer/internal/external/weather"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/Rabiann/weather-mailer/internal/dto"
+	"github.com/Rabiann/weather-mailer/internal/external/weather"
+	"github.com/Rabiann/weather-mailer/internal/logger"
 
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
@@ -43,12 +46,17 @@ func (a *App) Run() error {
 		return err
 	}
 
+	logger.SetupLogger("./logs/app.log")
 	subscriptionRepository := persistance.NewSubscriptionRepository(db)
 	tokenRepository := persistance.NewTokenRepository(db)
-	//weatherProvider := weather.NewWeatherProvider(configuration)
+	weatherApiProvider := weather.NewWeatherProviderLogger(weather.NewWeatherProvider(configuration, dto.NewWeatherApiRequestProvider(configuration, "weatherapi.org")))
+	weatherMapProvider := weather.NewWeatherProviderLogger(weather.NewWeatherProvider(configuration, dto.NewWeatherMapRequestProvider(configuration, "openweathermap.org")))
+	weatherStackProvider := weather.NewWeatherProviderLogger(weather.NewWeatherProvider(configuration, dto.NewWeatherStackRequestProvider(configuration, "weatherstack.org")))
 	weatherProvider := weather.NewWeatherProviderWithLaydown()
+	weatherProvider.Add(weatherApiProvider)
+	weatherProvider.Add(weatherMapProvider)
+	weatherProvider.Add(weatherStackProvider)
 	mailingProvider := external.NewMailingProvider(configuration)
-
 	weatherService := services.NewWeatherService(weatherProvider)
 	subscriptionDataService := services.NewSubscriptionService(subscriptionRepository)
 	tokenService := services.NewTokenService(tokenRepository)

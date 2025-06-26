@@ -2,18 +2,23 @@ package weather
 
 import (
 	"context"
+
 	"github.com/Rabiann/weather-mailer/internal/models"
 )
 
 type (
 	WeatherProviderWithLaydown struct {
-		curr WeatherProvider
+		curr WeatherProviderer
 		next LaydownWeatherProvider
 	}
 
 	LaydownWeatherProvider interface {
 		GetWeather(city string, ctx context.Context) (models.Weather, error)
-		SetNext(next LaydownWeatherProvider)
+		Add(next WeatherProviderer)
+	}
+
+	WeatherProviderer interface {
+		GetWeather(city string, ctx context.Context) (models.Weather, error)
 	}
 )
 
@@ -35,4 +40,11 @@ func (w *WeatherProviderWithLaydown) GetWeather(city string, ctx context.Context
 	return resp, nil
 }
 
-func (w *WeatherProviderWithLaydown) SetNext(next WeatherProvider) {}
+func (w *WeatherProviderWithLaydown) Add(next WeatherProviderer) {
+	if w.next != nil {
+		w.next.Add(next)
+		return
+	}
+	w.curr = next
+	w.next = &WeatherProviderWithLaydown{}
+}

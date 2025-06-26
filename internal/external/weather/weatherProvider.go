@@ -2,7 +2,6 @@ package weather
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -21,6 +20,7 @@ type (
 	ApiProvider interface {
 		BuildUrl(city string) string
 		BuildResponse([]byte) (models.Weather, error)
+		Name() string
 	}
 )
 
@@ -28,36 +28,9 @@ func NewWeatherProvider(config *config.Configuration, provider ApiProvider) *Wea
 	return &WeatherProvider{config, &http.Client{}, provider}
 }
 
-func (w *WeatherProvider) GetWeatherNew(city string, ctx_ context.Context) (models.Weather, error) {
-	var weather models.Weather
-	url := w.apiProvider.BuildUrl(city)
-
-	req, err := http.NewRequestWithContext(ctx_, "GET", url, nil)
-	if err != nil {
-		return weather, err
-	}
-
-	resp, err := w.client.Do(req)
-	if err != nil {
-		return weather, err
-	}
-
-	if resp.StatusCode == http.StatusBadRequest {
-		return weather, fmt.Errorf("city not exists")
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return weather, err
-	}
-
-	return w.apiProvider.BuildResponse(body)
-}
-
 func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context) (models.Weather, error) {
 	var weather models.Weather
-	var weatherResponse models.WeatherResponse
-	url := fmt.Sprintf(w.config.WeatherApiAddress, w.config.WeatherApiKey, city)
+	url := w.apiProvider.BuildUrl(city)
 
 	req, err := http.NewRequestWithContext(ctx_, "GET", url, nil)
 	if err != nil {
@@ -78,13 +51,10 @@ func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context) (models.
 		return weather, err
 	}
 
-	if err := json.Unmarshal(body, &weatherResponse); err != nil {
-		return weather, err
-	}
+	weather, err = w.apiProvider.BuildResponse(body)
+	return weather, err
+}
 
-	weather.Description = weatherResponse.Text
-	weather.Humidity = weatherResponse.Humidity
-	weather.Temperature = weatherResponse.Temperature
-
-	return weather, nil
+func (w *WeatherProvider) Name() string {
+	return w.apiProvider.Name()
 }
