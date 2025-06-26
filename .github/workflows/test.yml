@@ -1,6 +1,5 @@
 name: test.yml
-on:
-  push
+on: push
 
 jobs:
   unit-tests:
@@ -17,6 +16,8 @@ jobs:
     env:
       SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
       WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+      WEATHER_MAP_API: ${{ secrets.WEATHER_MAP_API }}
+      WEATHER_STACK_KEY: ${{ secrets.WEATHER_STACK_KEY }}
     steps:
       - uses: actions/checkout@v4
       - name: Build and Run Integration Tests
