@@ -46,6 +46,7 @@ func (a *App) Run() error {
 		return err
 	}
 
+	os.Mkdir("logs", 0700)
 	logger.SetupLogger("logs/app.log")
 	subscriptionRepository := persistance.NewSubscriptionRepository(db)
 	tokenRepository := persistance.NewTokenRepository(db)
