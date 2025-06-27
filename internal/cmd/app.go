@@ -46,7 +46,7 @@ func (a *App) Run() error {
 		return err
 	}
 
-	logger.SetupLogger("./logs/app.log")
+	logger.SetupLogger("logs/app.log")
 	subscriptionRepository := persistance.NewSubscriptionRepository(db)
 	tokenRepository := persistance.NewTokenRepository(db)
 	weatherApiProvider := weather.NewWeatherProviderLogger(weather.NewWeatherProvider(configuration, dto.NewWeatherApiRequestProvider(configuration, "weatherapi.org")))
