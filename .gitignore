@@ -1,2 +1,1 @@
-./playwright/node_modules
-.env.default
+playwright/node_modules
