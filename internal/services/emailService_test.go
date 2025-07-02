@@ -70,6 +70,19 @@ func TestSendWeatherReport(t *testing.T) {
 	require.Nil(t, err)
 
 	require.Equal(t, len(providerMock.Calls), 1)
+	options := dto.MailOptions{
+		From: mail.Email{
+			Name:    "Reporter",
+			Address: "mail@mail.com",
+		},
+		To: mail.Email{
+			Name:    "RECIPIENT",
+			Address: "RECIPIENT",
+		},
+		Subject: "string report for string",
+		Content: "WEATHER",
+	}
+	providerMock.AssertCalled(t, "SendLetter", options, mock.Anything)
 }
 
 func BuildConfiguration() *config.Configuration {

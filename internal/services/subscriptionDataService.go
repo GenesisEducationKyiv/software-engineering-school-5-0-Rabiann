@@ -2,6 +2,8 @@ package services
 
 import (
 	"context"
+	"errors"
+	"net/mail"
 
 	"github.com/Rabiann/weather-mailer/internal/models"
 )
@@ -24,13 +26,26 @@ func NewSubscriptionService(subscriptionRepository SubscriptionRepository) *Subs
 	return &SubscriptionDataService{subscriptionRepository}
 }
 
-func MapSubscription(subscriptionRequest models.Subscription) models.Subscription {
+func MapSubscription(subscriptionRequest models.Subscription) (models.Subscription, error) {
+	var mapped models.Subscription
+
+	email := subscriptionRequest.Email
+	_, err := mail.ParseAddress(email)
+	if err != nil {
+		return mapped, err
+	}
+
+	frequency := subscriptionRequest.Frequency
+	if frequency != "daily" && frequency != "hourly" {
+		return mapped, errors.New("Invalid frequency")
+	}
+
 	return models.Subscription{
-		Email:     subscriptionRequest.Email,
-		Frequency: subscriptionRequest.Frequency,
+		Email:     email,
+		Frequency: frequency,
 		City:      subscriptionRequest.City,
 		Confirmed: false,
-	}
+	}, nil
 }
 
 func (s *SubscriptionDataService) AddSubscription(subscription models.Subscription, ctx context.Context) (uint, error) {
