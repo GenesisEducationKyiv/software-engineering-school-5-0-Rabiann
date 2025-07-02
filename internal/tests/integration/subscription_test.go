@@ -70,6 +70,7 @@ func TestSubscribe(t *testing.T) {
 	form.Add("period", subscription.Frequency)
 
 	req, err := http.NewRequest("POST", "/api/subscribe", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	assert.NoError(t, err)
 
 	router.ServeHTTP(w, req)
@@ -98,6 +99,7 @@ func TestSubscribeInvalidFrequency(t *testing.T) {
 	form.Add("period", subscription.Frequency)
 
 	req, err := http.NewRequest("POST", "/api/subscribe", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	assert.NoError(t, err)
 
 	router.ServeHTTP(w, req)
@@ -125,6 +127,7 @@ func TestSubscribeInvalidEmail(t *testing.T) {
 	form.Add("period", subscription.Frequency)
 
 	req, err := http.NewRequest("POST", "/api/subscribe", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	assert.NoError(t, err)
 
 	router.ServeHTTP(w, req)

@@ -29,8 +29,7 @@ func NewSubscriptionService(subscriptionRepository SubscriptionRepository) *Subs
 func MapSubscription(subscriptionRequest models.Subscription) (models.Subscription, error) {
 	var mapped models.Subscription
 
-	email := subscriptionRequest.Email
-	_, err := mail.ParseAddress(email)
+	_, err := mail.ParseAddress(subscriptionRequest.Email)
 	if err != nil {
 		return mapped, err
 	}
@@ -41,7 +40,7 @@ func MapSubscription(subscriptionRequest models.Subscription) (models.Subscripti
 	}
 
 	return models.Subscription{
-		Email:     email,
+		Email:     subscriptionRequest.Email,
 		Frequency: frequency,
 		City:      subscriptionRequest.City,
 		Confirmed: false,
