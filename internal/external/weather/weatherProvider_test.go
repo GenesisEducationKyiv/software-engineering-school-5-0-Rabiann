@@ -109,3 +109,23 @@ func TestWeatherProviderWithLaydownSecondFailed(t *testing.T) {
 
 	require.Equal(t, weather3.Temperature, res.Temperature)
 }
+
+func TestWeatherProviderWithAllFailed(t *testing.T) {
+	provider1 := new(MockProvider1)
+	provider2 := new(MockProvider2)
+	provider3 := new(MockProvider3)
+	weather1 := models.Weather{Temperature: 1, Humidity: 2, Description: "TEXT1"}
+	weather2 := models.Weather{Temperature: 2, Humidity: 2, Description: "TEXT2"}
+	weather3 := models.Weather{Temperature: 3, Humidity: 2, Description: "TEXT3"}
+	provider1.On("GetWeather", "city", context.TODO()).Return(weather1, errors.New("ERROR1"))
+	provider2.On("GetWeather", "city", context.TODO()).Return(weather2, errors.New("ERROR2"))
+	provider3.On("GetWeather", "city", context.TODO()).Return(weather3, errors.New("ERROR3"))
+
+	laydown := weather.WeatherProviderWithLaydown{}
+	laydown.Add(provider1)
+	laydown.Add(provider2)
+	laydown.Add(provider3)
+
+	_, err := laydown.GetWeather("city", context.TODO())
+	assert.Error(t, err)
+}

@@ -46,6 +46,27 @@ func setupWeatherTest(mockServerUrl string) controllers.WeatherController {
 	return weatherController
 }
 
+func setupWeatherTestLaydown(mockServerUrl string) controllers.WeatherController {
+	configuration := &config.Configuration{
+		WeatherApiKey:     "testApikey",
+		WeatherApiAddress: mockServerUrl + "/weather?key=%s&q=%s&aqi=no",
+	}
+
+	apiProvider1 := dto.NewWeatherApiRequestProvider(configuration, "weatherapi.org")
+	apiProvider2 := dto.NewWeatherApiRequestProvider(configuration, "weatherapi.org")
+	apiProvider3 := dto.NewWeatherApiRequestProvider(configuration, "weatherapi.org")
+	weatherProvider1 := weather.NewWeatherProvider(configuration, apiProvider1)
+	weatherProvider2 := weather.NewWeatherProvider(configuration, apiProvider2)
+	weatherProvider3 := weather.NewWeatherProvider(configuration, apiProvider3)
+	laydownProvider := weather.NewWeatherProviderWithLaydown()
+	laydownProvider.Add(weatherProvider1)
+	laydownProvider.Add(weatherProvider2)
+	laydownProvider.Add(weatherProvider3)
+	weatherService := services.NewWeatherService(laydownProvider)
+	weatherController := controllers.NewWeatherController(weatherService)
+	return weatherController
+}
+
 func TestGetWeatherApi(t *testing.T) {
 	weather := models.WeatherApiResponse{
 		Current: struct {
@@ -68,7 +89,7 @@ func TestGetWeatherApi(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	req, _ := http.NewRequest("GET", "/api/weather?key=testApikey&city=kyiv&aqi=no", nil)
+	req, _ := buildTestRequest()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -103,7 +124,7 @@ func TestGetWeatherMap(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	req, _ := http.NewRequest("GET", "/api/weather?key=testApikey&city=kyiv&aqi=no", nil)
+	req, _ := buildTestRequest()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -114,6 +135,10 @@ func TestGetWeatherMap(t *testing.T) {
 	assert.Equal(t, weatherResponse.Temperature, weather.Main.Temperature)
 	assert.Equal(t, weatherResponse.Humidity, weather.Main.Humidity)
 	assert.Equal(t, weatherResponse.Description, weather.Weather.Description)
+}
+
+func buildTestRequest() (*http.Request, error) {
+	return http.NewRequest("GET", "/api/weather?city=kyiv", nil)
 }
 
 func TestGetWeatherStack(t *testing.T) {
@@ -136,7 +161,7 @@ func TestGetWeatherStack(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	req, _ := http.NewRequest("GET", "/api/weather?key=testApikey&city=kyiv&aqi=no", nil)
+	req, _ := buildTestRequest()
 	router.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -147,4 +172,39 @@ func TestGetWeatherStack(t *testing.T) {
 	assert.Equal(t, weatherResponse.Temperature, weather.Current.Temperature)
 	assert.Equal(t, weatherResponse.Humidity, weather.Current.Humidity)
 	assert.Equal(t, weatherResponse.Description, weather.Current.Description)
+}
+
+func TestGetWeatherWithLaydown(t *testing.T) {
+	weather := models.WeatherApiResponse{
+		Current: struct {
+			Temperature float64 "json:\"temp_c\""
+			Humidity    float64 "json:\"humidity\""
+			Condition   struct {
+				Text string "json:\"text\""
+			} "json:\"condition\""
+		}{},
+	}
+
+	server := setupWeatherServer(weather)
+	defer server.Close()
+	weatherController := setupWeatherTestLaydown(server.URL)
+
+	router := gin.Default()
+
+	api := router.Group("/api")
+	api.GET("/weather", weatherController.GetWeather)
+
+	w := httptest.NewRecorder()
+
+	req, _ := buildTestRequest()
+	router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	var weatherResponse models.Weather
+	err := json.Unmarshal(w.Body.Bytes(), &weatherResponse)
+	assert.NoError(t, err)
+	assert.Equal(t, weatherResponse.Temperature, weather.Current.Temperature)
+	assert.Equal(t, weatherResponse.Humidity, weather.Current.Humidity)
+	assert.Equal(t, weatherResponse.Description, weather.Current.Condition.Text)
 }

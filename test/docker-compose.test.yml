@@ -1,17 +1,15 @@
 services:
   unit-tests:
     build:
-      context: './unit'
-    depends_on: []
+      context: "./unit"
 
   integration-tests:
     build:
-      context: './integration'
-    depends_on: []
+      context: "./integration"
 
   e2e-tests:
     build:
-      context: '../playwright'
+      context: "../playwright"
     depends_on:
       api:
         condition: service_healthy
@@ -53,7 +51,3 @@ services:
     ports:
       - "8000:8000"
     command: "./api"
-
-volumes:
-  pgdata:
-    driver: local

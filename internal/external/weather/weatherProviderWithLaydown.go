@@ -41,10 +41,16 @@ func (w *WeatherProviderWithLaydown) GetWeather(city string, ctx context.Context
 }
 
 func (w *WeatherProviderWithLaydown) Add(next WeatherProviderer) {
-	if w.next != nil {
+	if w.curr == nil {
+		w.curr = next
+		return
+	}
+
+	if w.next == nil {
+		w.next = &WeatherProviderWithLaydown{}
 		w.next.Add(next)
 		return
 	}
-	w.curr = next
-	w.next = &WeatherProviderWithLaydown{}
+
+	w.next.Add(next)
 }
