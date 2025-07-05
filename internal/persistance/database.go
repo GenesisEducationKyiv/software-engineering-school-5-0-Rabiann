@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/Rabiann/weather-mailer/internal/models"
+	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -65,10 +66,24 @@ func Migrate(db *gorm.DB) error {
 }
 
 func SetupInMemoryDb() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
+	id, err := uuid.NewUUID()
 	if err != nil {
 		return nil, err
 	}
+
+	name := fmt.Sprintf("file:%s:memory:?cache=shared", id)
+
+	db, err := gorm.Open(sqlite.Open(name), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
+
+	sqlDb, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	sqlDb.SetMaxOpenConns(1)
 
 	if err = Migrate(db); err != nil {
 		return nil, err

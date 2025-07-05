@@ -21,7 +21,23 @@ import (
 	"gorm.io/gorm"
 )
 
-func setupSubscriptionTest() (*gin.Engine, *gorm.DB, *MockMailService) {
+type (
+	MockMailService struct {
+		mock.Mock
+	}
+)
+
+func (s *MockMailService) SendConfirmationLetter(recipient string, confirmationUrl string) error {
+	s.Called(recipient, confirmationUrl)
+	return nil
+}
+
+func (s *MockMailService) SendWeatherReport(subscriber *models.Subscriber, weather *models.Weather, unsibscribingUrl string) error {
+	s.Called(subscriber, weather, unsibscribingUrl)
+	return nil
+}
+
+func setupSubscription() (*gin.Engine, *gorm.DB, *MockMailService) {
 	configuration := &config.Configuration{
 		WeatherApiKey: "testApikey",
 		BaseUrl:       "baseurl",
@@ -55,7 +71,7 @@ func setupSubscriptionTest() (*gin.Engine, *gorm.DB, *MockMailService) {
 }
 
 func TestSubscribe(t *testing.T) {
-	router, db, emailService := setupSubscriptionTest()
+	router, db, emailService := setupSubscription()
 	w := httptest.NewRecorder()
 
 	subscription := models.Subscription{
@@ -84,7 +100,7 @@ func TestSubscribe(t *testing.T) {
 }
 
 func TestSubscribeInvalidFrequency(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 	w := httptest.NewRecorder()
 
 	subscription := models.Subscription{
@@ -112,7 +128,7 @@ func TestSubscribeInvalidFrequency(t *testing.T) {
 }
 
 func TestSubscribeInvalidEmail(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 	w := httptest.NewRecorder()
 
 	subscription := models.Subscription{
@@ -140,7 +156,7 @@ func TestSubscribeInvalidEmail(t *testing.T) {
 }
 
 func TestConfirm(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 
 	token := uuid.New()
 
@@ -173,7 +189,7 @@ func TestConfirm(t *testing.T) {
 }
 
 func TestConfirmInvalidToken(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 
 	token := uuid.New()
 
@@ -205,7 +221,7 @@ func TestConfirmInvalidToken(t *testing.T) {
 }
 
 func TestConfirmTokenExpired(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 
 	token := uuid.New()
 
@@ -237,7 +253,7 @@ func TestConfirmTokenExpired(t *testing.T) {
 }
 
 func TestUnsubscribeTokenInvalid(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 
 	token := uuid.New()
 
@@ -269,7 +285,7 @@ func TestUnsubscribeTokenInvalid(t *testing.T) {
 }
 
 func TestUnsubscribe(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 
 	token := uuid.New()
 
@@ -301,7 +317,7 @@ func TestUnsubscribe(t *testing.T) {
 }
 
 func TestUnsubscribeTokenExpired(t *testing.T) {
-	router, db, _ := setupSubscriptionTest()
+	router, db, _ := setupSubscription()
 
 	token := uuid.New()
 
