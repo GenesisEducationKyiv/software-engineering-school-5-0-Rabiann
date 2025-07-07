@@ -9,7 +9,7 @@ services:
       - redis
     environment:
       - REDIS_ADDR=redis:6379
-    command: sh -c "go test ./internal/notification/providers"
+    command: sh -c "go test ./internal/tests/integration ./internal/notification/providers"
 
   redis:
     image: redis:alpine
