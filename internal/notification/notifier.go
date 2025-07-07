@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/Rabiann/weather-mailer/internal/models"
@@ -21,55 +20,13 @@ const (
 	Daily
 )
 
-type AsyncCache struct {
-	cache map[string]models.Weather
-	mu    sync.RWMutex
-}
-
-type Semaphore struct {
-	c chan struct{}
-}
-
-func (s *Semaphore) Acquire() {
-	s.c <- struct{}{}
-}
-
-func (s *Semaphore) Release() {
-	<-s.c
-}
-
-func NewSemaphore(wCount int) Semaphore {
-	c := make(chan struct{}, wCount)
-	return Semaphore{c: c}
-}
-
-func NewAsyncCache() AsyncCache {
-	cache := make(map[string]models.Weather)
-	return AsyncCache{
-		cache: cache,
-		mu:    sync.RWMutex{},
-	}
-}
-
-func (c *AsyncCache) Read(key string) (models.Weather, bool) {
-	c.mu.RLock()
-	defer c.mu.RUnlock()
-	wth, ok := c.cache[key]
-	return wth, ok
-}
-
-func (c *AsyncCache) Write(key string, value models.Weather) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	c.cache[key] = value
-}
-
 type (
 	Notifier struct {
 		weatherService      WeatherService
 		subscriptionService SubscriptionService
 		mailingService      MailingService
 		tokenService        TokenService
+		cacheService        CacheServicer
 	}
 
 	MailingService interface {
@@ -87,14 +44,20 @@ type (
 	WeatherService interface {
 		GetWeather(string, context.Context) (models.Weather, error)
 	}
+
+	CacheServicer interface {
+		Read(key string) (models.Weather, bool)
+		Write(key string, value models.Weather) error
+	}
 )
 
-func NewNotifier(weatherService WeatherService, subscriptionService SubscriptionService, mailingService MailingService, tokenService TokenService) Notifier {
+func NewNotifier(weatherService WeatherService, subscriptionService SubscriptionService, mailingService MailingService, tokenService TokenService, cacheService CacheServicer) Notifier {
 	return Notifier{
 		weatherService:      weatherService,
 		subscriptionService: subscriptionService,
 		mailingService:      mailingService,
 		tokenService:        tokenService,
+		cacheService:        cacheService,
 	}
 }
 
@@ -140,12 +103,10 @@ func (n Notifier) RunNotifier(baseUrl string) {
 	select {}
 }
 
-func (n Notifier) RunSendingPipeline(period Period, baseUrl string) error {
+func (n *Notifier) RunSendingPipeline(period Period, baseUrl string) error {
+	cache := n.cacheService
 	var per string
 	var err error
-
-	cache := NewAsyncCache()
-	semaphore := NewSemaphore(10)
 
 	if period == Daily {
 		per = "daily"
@@ -161,9 +122,7 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 	}
 
 	for _, sub := range subscribers {
-		semaphore.Acquire()
 		go func(models.Subscription) {
-			defer semaphore.Release()
 			city := strings.ToLower(sub.City)
 			weather, ok := cache.Read(city)
 

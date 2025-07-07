@@ -2,9 +2,12 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strconv"
+	"unicode"
 
 	"github.com/joho/godotenv"
 )
@@ -14,81 +17,66 @@ type Configuration struct {
 	SendgridApiKey      string
 	WeatherApiKey       string
 	SenderMail          string
-	WeatherApiAddress   string
+	WeatherApiAddress   string `env:"WEATHER_API_ADDR"`
 	Port                string
 	MailTimeout         int
-	WeatherMapAddress   string
+	WeatherMapAddress   string `env:"WEATHER_MAP_ADDR"`
 	WeatherMapApi       string
-	WeatherStackAddress string
-	WeatherStackApi     string
+	WeatherStackAddress string `env:"WEATHER_STACK_ADDR"`
+	WeatherStackApi     string `env:"WEATHER_STACK_KEY"`
+	RedisAddr           string
+	LocalCacheFallback  string
+}
+
+func FromCamelCaseToUpperCase(text string) string {
+	result := ""
+
+	for index, chr := range text {
+		if index > 0 && unicode.IsUpper(chr) {
+			result += "_"
+		}
+
+		result += string(unicode.ToUpper(chr))
+	}
+
+	return result
 }
 
 func LoadEnvironment() (*Configuration, error) {
-	var config Configuration
-	var err error
-	if err = godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load("../../.env"); err != nil {
 		log.Fatal("`.env` is not found. Using user environment")
 	}
 
-	config.BaseUrl = os.Getenv("BASE_URL")
-	if config.BaseUrl == "" {
-		return nil, errors.New("`BASE_URL` is not set")
+	configuration := Configuration{}
+	type_ := reflect.TypeOf(configuration)
+	fieldCount := type_.NumField()
+
+	for i := range fieldCount {
+		field := type_.Field(i)
+		name := field.Name
+
+		envName := field.Tag.Get("env")
+		if envName == "" {
+			envName = FromCamelCaseToUpperCase(name)
+		}
+
+		env := os.Getenv(envName)
+		if env == "" {
+			return nil, errors.New(fmt.Sprintf("`%s` not set", envName))
+		}
+
+		switch field.Type.Kind() {
+		case reflect.Int:
+			value, err := strconv.Atoi(env)
+			if err != nil {
+				return nil, errors.New(fmt.Sprintf("`%s` should be Int", envName))
+			}
+
+			reflect.ValueOf(&configuration).Elem().FieldByName(name).SetInt(int64(value))
+		default:
+			reflect.ValueOf(&configuration).Elem().FieldByName(name).SetString(env)
+		}
 	}
 
-	config.SendgridApiKey = os.Getenv("SENDGRID_API_KEY")
-	if config.BaseUrl == "" {
-		return nil, errors.New("`SENDGRID_API_KEY` is not set")
-	}
-
-	config.WeatherApiKey = os.Getenv("WEATHER_API_KEY")
-	if config.BaseUrl == "" {
-		return nil, errors.New("`WEATHER_API_KEY` is not set")
-	}
-
-	config.WeatherMapApi = os.Getenv("WEATHER_MAP_API")
-	if config.BaseUrl == "" {
-		return nil, errors.New("`WEATHER_MAP_API` is not set")
-	}
-
-	config.WeatherStackApi = os.Getenv("WEATHER_STACK_API")
-	if config.BaseUrl == "" {
-		return nil, errors.New("WEATHER_STACK_API is not set")
-	}
-
-	config.SenderMail = os.Getenv("SENDER_MAIL")
-	if config.SenderMail == "" {
-		return nil, errors.New("`SENDER_MAIL` is not set")
-	}
-
-	config.WeatherApiAddress = os.Getenv("WEATHER_API_ADDR")
-	if config.WeatherApiAddress == "" {
-		return nil, errors.New("`WEATHER_API_ADDR` is not set")
-	}
-
-	config.WeatherMapAddress = os.Getenv("WEATHER_MAP_ADDR")
-	if config.WeatherMapAddress == "" {
-		return nil, errors.New("`WEATHER_MAP_ADDR` is not set")
-	}
-
-	config.WeatherStackAddress = os.Getenv("WEATHER_STACK_ADDR")
-	if config.WeatherStackAddress == "" {
-		return nil, errors.New("`WEATHER_STACK_ADDR` is not set")
-	}
-
-	mailTimeout := os.Getenv("MAIL_TIMEOUT")
-	if mailTimeout == "" {
-		return nil, errors.New("`MAIL_TIMEOUT` is not set")
-	}
-
-	config.MailTimeout, err = strconv.Atoi(mailTimeout)
-	if err != nil {
-		return nil, errors.New("`MAIL_TIMEOUT` should be valid integer")
-	}
-
-	config.Port = os.Getenv("PORT")
-	if config.Port == "" {
-		return nil, errors.New("`PORT` is not set")
-	}
-
-	return &config, nil
+	return &configuration, nil
 }

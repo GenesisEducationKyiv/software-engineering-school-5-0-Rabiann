@@ -12,6 +12,7 @@ import (
 	"github.com/Rabiann/weather-mailer/internal/dto"
 	"github.com/Rabiann/weather-mailer/internal/external/weather"
 	"github.com/Rabiann/weather-mailer/internal/logger"
+	"github.com/Rabiann/weather-mailer/internal/notification/providers"
 
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
@@ -48,6 +49,7 @@ func (a *App) Run() error {
 
 	os.Mkdir("logs", 0700)
 	logger.SetupLogger("logs/app.log")
+	cacheProvider := providers.NewRedisCache(configuration)
 	subscriptionRepository := persistance.NewSubscriptionRepository(db)
 	tokenRepository := persistance.NewTokenRepository(db)
 	weatherApiProvider := weather.NewWeatherProviderLogger(weather.NewWeatherProvider(configuration, dto.NewWeatherApiRequestProvider(configuration, "weatherapi.org")))
@@ -67,7 +69,8 @@ func (a *App) Run() error {
 	}
 
 	subscriptionService := services.NewSubscriptionBusinessService(subscriptionDataService, tokenService, emailService, configuration.BaseUrl)
-	notifier := notification.NewNotifier(weatherService, subscriptionDataService, emailService, tokenService)
+	cacheService := notification.NewCacheService(cacheProvider)
+	notifier := notification.NewNotifier(weatherService, subscriptionDataService, emailService, tokenService, cacheService)
 	go notifier.RunNotifier(configuration.BaseUrl)
 
 	weatherController := controllers.NewWeatherController(weatherService)
