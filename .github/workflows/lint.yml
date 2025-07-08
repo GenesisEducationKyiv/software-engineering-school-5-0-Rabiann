@@ -4,7 +4,7 @@ on:
     branches:
       - main
       - master
-      - hw4-test
+      - hw6-cache
   pull_request:
     branches:
       - main
