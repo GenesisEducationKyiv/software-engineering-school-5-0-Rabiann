@@ -132,7 +132,7 @@ func (n *Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 					return
 				}
 
-				cache.Write(sub.City, weather)
+				_ = cache.Write(sub.City, weather)
 			}
 
 			token, err := n.tokenService.CreateToken(sub.ID, ctx_)

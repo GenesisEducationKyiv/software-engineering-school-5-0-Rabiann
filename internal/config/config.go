@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -62,14 +61,14 @@ func LoadEnvironment() (*Configuration, error) {
 
 		env := os.Getenv(envName)
 		if env == "" {
-			return nil, errors.New(fmt.Sprintf("`%s` not set", envName))
+			return nil, fmt.Errorf("`%s` not set", envName)
 		}
 
 		switch field.Type.Kind() {
 		case reflect.Int:
 			value, err := strconv.Atoi(env)
 			if err != nil {
-				return nil, errors.New(fmt.Sprintf("`%s` should be Int", envName))
+				return nil, fmt.Errorf("`%s` should be Int", envName)
 			}
 
 			reflect.ValueOf(&configuration).Elem().FieldByName(name).SetInt(int64(value))

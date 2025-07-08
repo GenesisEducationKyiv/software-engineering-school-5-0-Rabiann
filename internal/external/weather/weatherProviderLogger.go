@@ -2,7 +2,6 @@ package weather
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/Rabiann/weather-mailer/internal/models"
@@ -31,6 +30,6 @@ func (w *WeatherProviderLogger) GetWeather(city string, ctx_ context.Context) (m
 		return resp, err
 	}
 
-	log.Printf(fmt.Sprintf("%s - Response: %+v", provider.Name(), resp))
+	log.Printf("%s - Response: %+v", provider.Name(), resp)
 	return resp, err
 }

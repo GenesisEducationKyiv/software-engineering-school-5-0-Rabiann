@@ -17,7 +17,9 @@ func setupTest() *providers.RedisCache {
 
 func TestCacheSetGet(t *testing.T) {
 	cache := setupTest()
-	defer cache.Clear()
+	defer func() {
+		_ = cache.Clear()
+	}()
 
 	require.NoError(t, cache.Ping())
 
@@ -39,7 +41,9 @@ func TestCacheSetGet(t *testing.T) {
 
 func TestCacheSetGetExpired(t *testing.T) {
 	cache := setupTest()
-	defer cache.Clear()
+	defer func() {
+		_ = cache.Clear()
+	}()
 
 	require.NoError(t, cache.Ping())
 	key := "kyiv"
