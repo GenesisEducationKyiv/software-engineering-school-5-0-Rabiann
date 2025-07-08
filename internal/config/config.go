@@ -43,7 +43,7 @@ func FromCamelCaseToUpperCase(text string) string {
 }
 
 func LoadEnvironment() (*Configuration, error) {
-	if err := godotenv.Load("../../.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		log.Fatal("`.env` is not found. Using user environment")
 	}
 

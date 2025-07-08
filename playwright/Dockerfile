@@ -1,4 +1,3 @@
-FROM node:19
 FROM mcr.microsoft.com/playwright:v1.53.1
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
