@@ -108,3 +108,4 @@ func (s *SubscriptionRepository) Confirm(id uint, ctx context.Context) error {
 	result = s.Db.WithContext(ctx).Save(subscription)
 	return result.Error
 }
+

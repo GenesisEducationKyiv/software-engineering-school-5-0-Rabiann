@@ -21,6 +21,7 @@ import (
 )
 
 func setupSubscriptionTest() (*gin.Engine, *gorm.DB) {
+
 	configuration := &config.Configuration{
 		WeatherApiKey: "testApikey",
 		BaseUrl:       "baseurl",

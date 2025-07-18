@@ -38,7 +38,12 @@ func NewSubscriptionBusinessService(subscriptionService SubscriptionDataServer, 
 }
 
 func (s *SubscriptionControlService) Subscribe(subscription models.Subscription, ctx context.Context) error {
-	id, err := s.subscriptionDataService.AddSubscription(MapSubscription(subscription), ctx)
+	mappedSubscription, err := MapSubscription(subscription)
+	if err != nil {
+		return err
+	}
+
+	id, err := s.subscriptionDataService.AddSubscription(mappedSubscription, ctx)
 	if err != nil {
 		return err
 	}

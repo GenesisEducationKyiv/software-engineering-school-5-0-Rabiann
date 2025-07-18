@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.53.1
+FROM mcr.microsoft.com/playwright:v1.54.1-noble
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json /app/
