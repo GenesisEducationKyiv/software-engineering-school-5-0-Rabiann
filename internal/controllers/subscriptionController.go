@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"net/http"
 )
 
 type (
@@ -36,13 +37,14 @@ func NewSubscriptionController(subscriptionService SubscriptionService) Subscrip
 
 func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 	var subscription models.Subscription
+
 	if err := ctx.ShouldBind(&subscription); err != nil {
 		ctx.JSON(400, gin.H{"status": "bad request"})
 		return
 	}
 
 	if err := s.SubscriptionService.Subscribe(subscription, ctx); err != nil {
-		ctx.JSON(400, gin.H{"status": "bad request"})
+		ctx.JSON(300, gin.H{"status": err.Error()})
 		return
 	}
 
@@ -52,10 +54,9 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 func (s *SubscriptionController) Confirm(ctx *gin.Context) {
 	token, err := uuid.Parse(ctx.Param("token"))
 	if err != nil {
-		ctx.HTML(400, "registrationfailed.html", gin.H{})
+		ctx.JSON(400, gin.H{"status": "bad request"})
 		return
 	}
-
 	if err := s.SubscriptionService.Confirm(token, ctx); err != nil {
 		ctx.HTML(400, "registrationfailed.html", gin.H{})
 		return
@@ -64,10 +65,10 @@ func (s *SubscriptionController) Confirm(ctx *gin.Context) {
 	ctx.HTML(http.StatusOK, "registration.html", gin.H{})
 }
 
-func (s SubscriptionController) Unsubscribe(ctx *gin.Context) {
+func (s *SubscriptionController) Unsubscribe(ctx *gin.Context) {
 	token, err := uuid.Parse(ctx.Param("token"))
 	if err != nil {
-		ctx.HTML(400, "registrationfailed.html", gin.H{})
+		ctx.JSON(400, gin.H{"status": "bad request"})
 		return
 	}
 	if err := s.SubscriptionService.Unsubscribe(token, ctx); err != nil {

@@ -28,7 +28,6 @@ func (t *TokenRepository) CreateToken(subscriptionId uint, ctx context.Context) 
 		SubscriptionID: subscriptionId,
 		Expires:        time.Now().Add(time.Hour * 24),
 	}
-
 	result := t.Db.WithContext(ctx).Create(&token)
 	return id, result.Error
 }
@@ -61,6 +60,5 @@ func (t *TokenRepository) UseToken(id uuid.UUID, ctx context.Context) error {
 	if result := t.Db.WithContext(ctx).Delete(token); result.Error != nil {
 		return result.Error
 	}
-
 	return nil
 }

@@ -7,15 +7,15 @@ import (
 
 type (
 	Template struct {
-		text string
+		Text string
 	}
 
 	ConfirmationTemplate struct {
-		template *Template
+		Template *Template
 	}
 
 	WeatherTemplate struct {
-		template *Template
+		Template *Template
 	}
 )
 
@@ -27,7 +27,7 @@ func NewTemplate(filepath string) (*Template, error) {
 
 	var template Template
 
-	template.text = string(text)
+	template.Text = string(text)
 	return &template, nil
 }
 
@@ -37,7 +37,7 @@ func NewConfirmationTemplate(filepath string) (*ConfirmationTemplate, error) {
 		return nil, err
 	}
 
-	return &ConfirmationTemplate{template: template}, nil
+	return &ConfirmationTemplate{Template: template}, nil
 }
 
 func NewWeatherTemplate(filepath string) (*WeatherTemplate, error) {
@@ -46,15 +46,15 @@ func NewWeatherTemplate(filepath string) (*WeatherTemplate, error) {
 		return nil, err
 	}
 
-	return &WeatherTemplate{template: template}, nil
+	return &WeatherTemplate{Template: template}, nil
 }
 
-func (ct *ConfirmationTemplate) buildConfirmationLetter(email string) string {
-	return strings.Replace(ct.template.text, "{}", email, 3)
+func (ct *ConfirmationTemplate) BuildConfirmationLetter(url string) string {
+	return strings.Replace(ct.Template.Text, "{}", url, 3)
 }
 
-func (wt *WeatherTemplate) buildWeatherLetter(city string, temp string, humid string, description string, unsubscribe string) string {
-	let := strings.Replace(wt.template.text, "{City}", city, 1)
+func (wt *WeatherTemplate) BuildWeatherLetter(city string, temp string, humid string, description string, unsubscribe string) string {
+	let := strings.Replace(wt.Template.Text, "{City}", city, 1)
 	let = strings.Replace(let, "{Temperature}", temp, 1)
 	let = strings.Replace(let, "{Humidity}", humid, 1)
 	let = strings.Replace(let, "{UnsubscribeLink}", unsubscribe, 1)

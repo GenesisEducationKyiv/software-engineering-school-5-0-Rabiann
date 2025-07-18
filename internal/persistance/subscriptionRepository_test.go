@@ -1,0 +1,170 @@
+package persistance_test
+
+import (
+	"context"
+	"testing"
+
+	"github.com/Rabiann/weather-mailer/internal/models"
+	"github.com/Rabiann/weather-mailer/internal/persistance"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
+)
+
+func setup() *gorm.DB {
+	db, err := persistance.SetupInMemoryDb()
+	if err != nil {
+		panic(err)
+	}
+
+	return db
+}
+
+func TestGetSubscriptions(t *testing.T) {
+	db := setup()
+	model := models.Subscription{
+		ID:    1,
+		Email: "a@mail.com",
+	}
+
+	db.Create(&model)
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	subs, err := repo.GetSubscriptions(context.TODO())
+	assert.NoError(t, err)
+
+	require.Equal(t, 1, len(subs))
+}
+
+func TestGetSubscriptionById(t *testing.T) {
+	db := setup()
+	model := models.Subscription{
+		ID:    2,
+		Email: "b@mail.com",
+	}
+
+	db.Create(&model)
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	sub, err := repo.GetSubscriptionById(model.ID, context.TODO())
+	assert.NoError(t, err)
+
+	require.NotNil(t, sub)
+	require.Equal(t, model.Email, sub.Email)
+}
+
+func TestAddSubscription(t *testing.T) {
+	db := setup()
+	model := models.Subscription{
+		ID:    3,
+		Email: "c@mail.com",
+	}
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	id, err := repo.AddSubscription(model, context.TODO())
+	assert.NoError(t, err)
+
+	sub, err := repo.GetSubscriptionById(id, context.TODO())
+	assert.NoError(t, err)
+
+	require.NotNil(t, sub)
+	require.Equal(t, model.Email, sub.Email)
+}
+
+func TestActivateSubscription(t *testing.T) {
+	db := setup()
+	model := models.Subscription{
+		ID:        4,
+		Email:     "d@mail.com",
+		Confirmed: false,
+	}
+
+	db.Create(&model)
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	email, err := repo.ActivateSubscription(model.ID, context.TODO())
+	assert.NoError(t, err)
+
+	require.NotNil(t, email)
+	require.Equal(t, model.Email, email)
+
+	sub, err := repo.GetSubscriptionById(model.ID, context.TODO())
+	assert.NoError(t, err)
+	assert.NotNil(t, sub)
+	require.True(t, sub.Confirmed)
+}
+
+func TestGetActiveSubscriptions(t *testing.T) {
+	db := setup()
+	model1 := models.Subscription{
+		ID:        5,
+		Email:     "e@mail.com",
+		Confirmed: true,
+		Frequency: "daily",
+	}
+
+	model2 := models.Subscription{
+		ID:        6,
+		Email:     "f@mail.com",
+		Confirmed: false,
+		Frequency: "daily",
+	}
+
+	db.Create(&model1)
+	db.Create(&model2)
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	subs, err := repo.GetActiveSubscriptions("daily", context.TODO())
+	assert.NoError(t, err)
+
+	require.Equal(t, 1, len(subs))
+}
+
+func TestUpdateSubscription(t *testing.T) {
+	db := setup()
+	model_old := models.Subscription{
+		ID:        7,
+		Email:     "g@mail.com",
+		Confirmed: false,
+	}
+
+	model_new := models.Subscription{
+		ID:        7,
+		Email:     "h@mail.com",
+		Confirmed: true,
+	}
+
+	db.Create(&model_old)
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	err := repo.UpdateSubscription(model_old.ID, model_new, context.TODO())
+	assert.NoError(t, err)
+	sub, err := repo.GetSubscriptionById(model_old.ID, context.TODO())
+	assert.NoError(t, err)
+	assert.NotNil(t, sub)
+	require.Equal(t, model_new.Email, sub.Email)
+}
+
+func TestDeleteSubscription(t *testing.T) {
+	db := setup()
+	model := models.Subscription{
+		ID:    8,
+		Email: "i@mail.com",
+	}
+
+	db.Create(&model)
+
+	repo := persistance.NewSubscriptionRepository(db)
+
+	err := repo.DeleteSubscription(model.ID, context.TODO())
+	assert.NoError(t, err)
+
+	_, err = repo.GetSubscriptionById(model.ID, context.TODO())
+	assert.Error(t, err)
+}

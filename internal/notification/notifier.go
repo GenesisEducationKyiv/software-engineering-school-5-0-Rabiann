@@ -140,7 +140,7 @@ func (n Notifier) RunNotifier(baseUrl string) {
 	select {}
 }
 
-func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context.Context) error {
+func (n Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 	var per string
 	var err error
 
@@ -153,6 +153,8 @@ func (n Notifier) RunSendingPipeline(period Period, baseUrl string, ctx_ context
 		per = "hourly"
 	}
 
+	ctx_, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
 	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per, ctx_)
 	if err != nil {
 		return err
