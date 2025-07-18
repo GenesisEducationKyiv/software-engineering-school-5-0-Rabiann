@@ -26,8 +26,16 @@ func setupWeatherServer(response any) *httptest.Server {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
 		_, _ = w.Write(body)
+	}))
+
+	return mockServer
+}
+
+func setupWeatherServerBadRequest() *httptest.Server {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
 	}))
 
 	return mockServer
@@ -127,7 +135,7 @@ func TestGetWeatherMap(t *testing.T) {
 	req, _ := buildTestRequest()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	var weatherResponse models.Weather
 	err := json.Unmarshal(w.Body.Bytes(), &weatherResponse)
