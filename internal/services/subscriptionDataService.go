@@ -17,6 +17,7 @@ type (
 		GetActiveSubscriptions(per string, ctx context.Context) ([]models.Subscription, error)
 		UpdateSubscription(id uint, new_subscription models.Subscription, ctx context.Context) error
 		DeleteSubscription(id uint, ctx context.Context) error
+		Confirm(id uint, ctx context.Context) error
 	}
 )
 
@@ -51,4 +52,8 @@ func (s SubscriptionDataService) UpdateSubscription(id uint, new_subscription mo
 
 func (s SubscriptionDataService) DeleteSubscription(id uint, ctx context.Context) error {
 	return s.subscriptionRepository.DeleteSubscription(id, ctx)
+}
+
+func (s SubscriptionDataService) Confirm(id uint, ctx context.Context) error {
+	return s.subscriptionRepository.Confirm(id, ctx)
 }
