@@ -3,6 +3,7 @@ package persistance
 import (
 	"context"
 	"errors"
+
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"gorm.io/gorm"
 )

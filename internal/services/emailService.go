@@ -77,7 +77,7 @@ func (s *MailingService) SendConfirmationLetter(recipient string, confirmationUr
 	return s.Provider.SendLetter(options, ctx)
 }
 
-func (s *MailingService) SendWeatherReport(subscriber *models.Subscriber, weather *models.Weather, unsibscribingUrl string) error {
+func (s *MailingService) SendWeatherReport(subscriber *models.Subscriber, weather *models.Weather, unsubscribingUrl string) error {
 	from := mail.Email{
 		Name:    "Reporter",
 		Address: s.Config.SenderMail,
@@ -88,7 +88,7 @@ func (s *MailingService) SendWeatherReport(subscriber *models.Subscriber, weathe
 	}
 
 	subject := fmt.Sprintf("%s report for %s", subscriber.Period, subscriber.City)
-	body := s.WeatherTemplate.BuildWeatherLetter(subscriber.City, fmt.Sprintf("%.1f", weather.Temperature), fmt.Sprintf("%.1f", weather.Humidity), weather.Description, unsibscribingUrl)
+	body := s.WeatherTemplate.BuildWeatherLetter(subscriber.City, fmt.Sprintf("%.1f", weather.Temperature), fmt.Sprintf("%.1f", weather.Humidity), weather.Description, unsubscribingUrl)
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancel()
