@@ -32,14 +32,6 @@ func setupWeatherServer(response any) *httptest.Server {
 	return mockServer
 }
 
-func setupWeatherServerBadRequest() *httptest.Server {
-	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusBadRequest)
-	}))
-
-	return mockServer
-}
-
 func setupWeatherTest(mockServerUrl string) controllers.WeatherController {
 	configuration := &config.Configuration{
 		WeatherApiKey:     "testApikey",
