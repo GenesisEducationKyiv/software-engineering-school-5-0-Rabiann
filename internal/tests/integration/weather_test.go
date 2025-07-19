@@ -18,15 +18,14 @@ import (
 
 func setupWeatherServer(response any) *httptest.Server {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		weatherResponse := response
-		body, err := json.Marshal(weatherResponse)
+		body, err := json.Marshal(response)
 
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(body)
 	}))
 
@@ -135,7 +134,7 @@ func TestGetWeatherMap(t *testing.T) {
 	req, _ := buildTestRequest()
 	router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code)
 
 	var weatherResponse models.Weather
 	err := json.Unmarshal(w.Body.Bytes(), &weatherResponse)

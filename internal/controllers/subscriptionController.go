@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/Rabiann/weather-mailer/internal/models"
@@ -42,6 +43,8 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 		ctx.JSON(400, gin.H{"status": "bad request"})
 		return
 	}
+
+	fmt.Println(subscription)
 
 	if err := s.SubscriptionService.Subscribe(subscription, ctx); err != nil {
 		ctx.JSON(300, gin.H{"status": err.Error()})

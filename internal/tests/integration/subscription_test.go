@@ -2,6 +2,13 @@ package integration_test
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/Rabiann/weather-mailer/internal/config"
 	"github.com/Rabiann/weather-mailer/internal/controllers"
 	"github.com/Rabiann/weather-mailer/internal/models"
@@ -12,12 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
-	"strings"
-	"testing"
-	"time"
 )
 
 func setupSubscriptionTest() (*gin.Engine, *gorm.DB) {
@@ -70,6 +71,7 @@ func TestSubscribe(t *testing.T) {
 	form.Add("period", subscription.Frequency)
 
 	req, err := http.NewRequest("POST", "/api/subscribe", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	assert.NoError(t, err)
 
 	router.ServeHTTP(w, req)

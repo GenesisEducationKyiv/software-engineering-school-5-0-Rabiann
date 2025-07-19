@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+
 	"github.com/Rabiann/weather-mailer/internal/models"
 )
 
@@ -21,5 +22,4 @@ func NewWeatherService(weatherProvider WeatherProvider) *WeatherService {
 
 func (w *WeatherService) GetWeather(city string, ctx context.Context) (models.Weather, error) {
 	return w.weatherProvider.GetWeather(city, ctx)
-
 }
