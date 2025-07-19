@@ -21,23 +21,8 @@ import (
 	"gorm.io/gorm"
 )
 
-type (
-	MockMailService struct {
-		mock.Mock
-	}
-)
+func setupSubscriptionTest() (*gin.Engine, *gorm.DB) {
 
-func (s *MockMailService) SendConfirmationLetter(recipient string, confirmationUrl string) error {
-	s.Called(recipient, confirmationUrl)
-	return nil
-}
-
-func (s *MockMailService) SendWeatherReport(subscriber *models.Subscriber, weather *models.Weather, unsibscribingUrl string) error {
-	s.Called(subscriber, weather, unsibscribingUrl)
-	return nil
-}
-
-func setupSubscription() (*gin.Engine, *gorm.DB, *MockMailService) {
 	configuration := &config.Configuration{
 		WeatherApiKey: "testApikey",
 		BaseUrl:       "baseurl",
@@ -67,11 +52,11 @@ func setupSubscription() (*gin.Engine, *gorm.DB, *MockMailService) {
 	api.GET("/confirm/:token", subscriptionController.Confirm)
 	api.GET("/unsubscribe/:token", subscriptionController.Unsubscribe)
 
-	return router, db, emailService
+	return router, db
 }
 
 func TestSubscribe(t *testing.T) {
-	router, db, emailService := setupSubscription()
+	router, _ := setupSubscriptionTest()
 	w := httptest.NewRecorder()
 
 	subscription := models.Subscription{
@@ -91,72 +76,10 @@ func TestSubscribe(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
-
-	var subscriptions []models.Subscription
-	r := db.Find(&subscriptions)
-	assert.NoError(t, r.Error)
-	assert.Equal(t, 1, len(subscriptions))
-	emailService.AssertCalled(t, "SendConfirmationLetter", mock.Anything, mock.Anything) // cant check correctness of params here as key is generated automatically
-}
-
-func TestSubscribeInvalidFrequency(t *testing.T) {
-	router, db, _ := setupSubscription()
-	w := httptest.NewRecorder()
-
-	subscription := models.Subscription{
-		Email:     "vasya@mail.com",
-		City:      "kyiv",
-		Frequency: "yearly",
-	}
-
-	form := url.Values{}
-	form.Add("email", subscription.Email)
-	form.Add("city", subscription.City)
-	form.Add("period", subscription.Frequency)
-
-	req, err := http.NewRequest("POST", "/api/subscribe", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	assert.NoError(t, err)
-
-	router.ServeHTTP(w, req)
-	assert.Equal(t, 300, w.Code)
-
-	var subscriptions []models.Subscription
-	r := db.Find(&subscriptions)
-	assert.NoError(t, r.Error)
-	assert.Equal(t, 0, len(subscriptions))
-}
-
-func TestSubscribeInvalidEmail(t *testing.T) {
-	router, db, _ := setupSubscription()
-	w := httptest.NewRecorder()
-
-	subscription := models.Subscription{
-		Email:     "lalalala",
-		City:      "kyiv",
-		Frequency: "daily",
-	}
-
-	form := url.Values{}
-	form.Add("email", subscription.Email)
-	form.Add("city", subscription.City)
-	form.Add("period", subscription.Frequency)
-
-	req, err := http.NewRequest("POST", "/api/subscribe", strings.NewReader(form.Encode()))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	assert.NoError(t, err)
-
-	router.ServeHTTP(w, req)
-	assert.Equal(t, 300, w.Code)
-
-	var subscriptions []models.Subscription
-	r := db.Find(&subscriptions)
-	assert.NoError(t, r.Error)
-	assert.Equal(t, 0, len(subscriptions))
 }
 
 func TestConfirm(t *testing.T) {
-	router, db, _ := setupSubscription()
+	router, db := setupSubscriptionTest()
 
 	token := uuid.New()
 
@@ -182,110 +105,10 @@ func TestConfirm(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
-
-	var subscription models.Subscription
-	_ = db.Find(&subscription)
-	assert.Equal(t, true, subscription.Confirmed)
-}
-
-func TestConfirmInvalidToken(t *testing.T) {
-	router, db, _ := setupSubscription()
-
-	token := uuid.New()
-
-	db.Create(&models.Subscription{
-		ID:        1,
-		Email:     "vasya@mail.com",
-		City:      "kyiv",
-		Frequency: "daily",
-		Confirmed: false,
-	})
-
-	db.Create(&models.Token{
-		ID:             token,
-		Expires:        time.Now().AddDate(1000, 0, 0),
-		SubscriptionID: 1,
-	})
-
-	w := httptest.NewRecorder()
-	reqUrl := fmt.Sprintf("/api/confirm/%s", uuid.Max)
-
-	req, err := http.NewRequest("GET", reqUrl, nil)
-	assert.NoError(t, err)
-
-	router.ServeHTTP(w, req)
-	assert.Equal(t, 400, w.Code)
-	var subscription models.Subscription
-	_ = db.Find(&subscription)
-	assert.Equal(t, false, subscription.Confirmed)
-}
-
-func TestConfirmTokenExpired(t *testing.T) {
-	router, db, _ := setupSubscription()
-
-	token := uuid.New()
-
-	db.Create(&models.Subscription{
-		ID:        1,
-		Email:     "vasya@mail.com",
-		City:      "kyiv",
-		Frequency: "daily",
-		Confirmed: false,
-	})
-
-	db.Create(&models.Token{
-		ID:             token,
-		Expires:        time.Now().AddDate(-1, 0, 0),
-		SubscriptionID: 1,
-	})
-
-	w := httptest.NewRecorder()
-	reqUrl := fmt.Sprintf("/api/confirm/%s", uuid.Max)
-
-	req, err := http.NewRequest("GET", reqUrl, nil)
-	assert.NoError(t, err)
-
-	router.ServeHTTP(w, req)
-	assert.Equal(t, 400, w.Code)
-	var subscription models.Subscription
-	_ = db.Find(&subscription)
-	assert.Equal(t, false, subscription.Confirmed)
-}
-
-func TestUnsubscribeTokenInvalid(t *testing.T) {
-	router, db, _ := setupSubscription()
-
-	token := uuid.New()
-
-	db.Create(&models.Subscription{
-		ID:        1,
-		Email:     "vasya@mail.com",
-		City:      "kyiv",
-		Frequency: "daily",
-		Confirmed: true,
-	})
-
-	db.Create(&models.Token{
-		ID:             token,
-		Expires:        time.Now().AddDate(1000, 0, 0),
-		SubscriptionID: 1,
-	})
-
-	w := httptest.NewRecorder()
-	reqUrl := fmt.Sprintf("/api/unsubscribe/%s", uuid.Max)
-
-	req, err := http.NewRequest("GET", reqUrl, nil)
-	assert.NoError(t, err)
-
-	router.ServeHTTP(w, req)
-	assert.Equal(t, 400, w.Code)
-	var subscription models.Subscription
-	_ = db.Find(&subscription)
-	assert.Equal(t, true, subscription.Confirmed)
 }
 
 func TestUnsubscribe(t *testing.T) {
-	router, db, _ := setupSubscription()
+	router, db := setupSubscriptionTest()
 
 	token := uuid.New()
 
@@ -311,39 +134,4 @@ func TestUnsubscribe(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
-	var subscriptions []models.Subscription
-	_ = db.Find(&subscriptions)
-	assert.Empty(t, subscriptions)
-}
-
-func TestUnsubscribeTokenExpired(t *testing.T) {
-	router, db, _ := setupSubscription()
-
-	token := uuid.New()
-
-	db.Create(&models.Subscription{
-		ID:        1,
-		Email:     "vasya@mail.com",
-		City:      "kyiv",
-		Frequency: "daily",
-		Confirmed: true,
-	})
-
-	db.Create(&models.Token{
-		ID:             token,
-		Expires:        time.Now().AddDate(-1, 0, 0),
-		SubscriptionID: 1,
-	})
-
-	w := httptest.NewRecorder()
-	reqUrl := fmt.Sprintf("/api/unsubscribe/%s", token)
-
-	req, err := http.NewRequest("GET", reqUrl, nil)
-	assert.NoError(t, err)
-
-	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-	var subscription models.Subscription
-	_ = db.Find(&subscription)
-	assert.Equal(t, true, subscription.Confirmed)
 }

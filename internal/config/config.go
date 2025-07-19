@@ -10,13 +10,17 @@ import (
 )
 
 type Configuration struct {
-	BaseUrl           string
-	SendgridApiKey    string
-	WeatherApiKey     string
-	SenderMail        string
-	WeatherApiAddress string
-	Port              string
-	MailTimeout       int
+	BaseUrl             string
+	SendgridApiKey      string
+	WeatherApiKey       string
+	SenderMail          string
+	WeatherApiAddress   string
+	Port                string
+	MailTimeout         int
+	WeatherMapAddress   string
+	WeatherMapApi       string
+	WeatherStackAddress string
+	WeatherStackApi     string
 }
 
 func LoadEnvironment() (*Configuration, error) {
@@ -41,6 +45,16 @@ func LoadEnvironment() (*Configuration, error) {
 		return nil, errors.New("`WEATHER_API_KEY` is not set")
 	}
 
+	config.WeatherMapApi = os.Getenv("WEATHER_MAP_API")
+	if config.BaseUrl == "" {
+		return nil, errors.New("`WEATHER_MAP_API` is not set")
+	}
+
+	config.WeatherStackApi = os.Getenv("WEATHER_STACK_API")
+	if config.BaseUrl == "" {
+		return nil, errors.New("WEATHER_STACK_API is not set")
+	}
+
 	config.SenderMail = os.Getenv("SENDER_MAIL")
 	if config.SenderMail == "" {
 		return nil, errors.New("`SENDER_MAIL` is not set")
@@ -49,6 +63,16 @@ func LoadEnvironment() (*Configuration, error) {
 	config.WeatherApiAddress = os.Getenv("WEATHER_API_ADDR")
 	if config.WeatherApiAddress == "" {
 		return nil, errors.New("`WEATHER_API_ADDR` is not set")
+	}
+
+	config.WeatherMapAddress = os.Getenv("WEATHER_MAP_ADDR")
+	if config.WeatherMapAddress == "" {
+		return nil, errors.New("`WEATHER_MAP_ADDR` is not set")
+	}
+
+	config.WeatherStackAddress = os.Getenv("WEATHER_STACK_ADDR")
+	if config.WeatherStackAddress == "" {
+		return nil, errors.New("`WEATHER_STACK_ADDR` is not set")
 	}
 
 	mailTimeout := os.Getenv("MAIL_TIMEOUT")

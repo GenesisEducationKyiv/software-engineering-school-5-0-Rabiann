@@ -22,7 +22,7 @@ func NewWeatherProvider(config *config.Configuration) *WeatherProvider {
 
 func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context) (models.Weather, error) {
 	var weather models.Weather
-	var weatherResponse models.WeatherResponse
+	var weatherResponse models.WeatherApiResponse
 	url := fmt.Sprintf(w.config.WeatherApiAddress, w.config.WeatherApiKey, city)
 
 	req, err := http.NewRequestWithContext(ctx_, "GET", url, nil)
@@ -48,9 +48,9 @@ func (w *WeatherProvider) GetWeather(city string, ctx_ context.Context) (models.
 		return weather, err
 	}
 
-	weather.Description = weatherResponse.Text
-	weather.Humidity = weatherResponse.Humidity
-	weather.Temperature = weatherResponse.Temperature
+	weather.Description = weatherResponse.Current.Condition.Text
+	weather.Humidity = weatherResponse.Current.Humidity
+	weather.Temperature = weatherResponse.Current.Temperature
 
 	return weather, nil
 }
