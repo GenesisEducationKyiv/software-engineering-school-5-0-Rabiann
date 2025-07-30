@@ -18,7 +18,7 @@ type (
 
 func NewRedisCache(config *config.Configuration) *RedisCache {
 	client := redis.NewClient(&redis.Options{
-		Addr: "redis:6379",
+		Addr: config.RedisAddr,
 	})
 
 	return &RedisCache{

@@ -1,0 +1,11 @@
+version: "2"
+linters:
+  settings:
+    depguard:
+      rules:
+        main:
+          files:
+            - $all
+          allow:
+            - $standard
+            - "github.com/stretchr/testify"
