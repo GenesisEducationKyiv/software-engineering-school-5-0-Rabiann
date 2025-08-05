@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -25,7 +24,6 @@ func NewWeatherController(weatherService WeatherService) WeatherController {
 }
 
 func (w WeatherController) GetWeather(ctx *gin.Context) {
-	fmt.Println(ctx.Request.URL)
 	ctx_, cancel := context.WithTimeout(ctx.Request.Context(), 2*time.Second)
 	defer cancel()
 	city, ok := ctx.GetQuery("city")

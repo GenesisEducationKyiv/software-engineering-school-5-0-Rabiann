@@ -104,7 +104,7 @@ func (n Notifier) RunNotifier(baseUrl string) {
 }
 
 func (n *Notifier) RunSendingPipeline(period Period, baseUrl string) error {
-	cache := n.cacheService
+	// cache := n.cacheService
 	var per string
 	var err error
 
@@ -114,9 +114,9 @@ func (n *Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 		per = "hourly"
 	}
 
-	ctx_, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per, ctx_)
+	subscribers, err := n.subscriptionService.GetActiveSubscriptions(per, ctx)
 	if err != nil {
 		return err
 	}
@@ -124,18 +124,18 @@ func (n *Notifier) RunSendingPipeline(period Period, baseUrl string) error {
 	for _, sub := range subscribers {
 		go func(models.Subscription) {
 			city := strings.ToLower(sub.City)
-			weather, ok := cache.Read(city)
+			weather, ok := n.cacheService.Read(city)
 
 			if !ok {
-				weather, err = n.weatherService.GetWeather(city, ctx_)
+				weather, err = n.weatherService.GetWeather(city, ctx)
 				if err != nil {
 					return
 				}
 
-				_ = cache.Write(sub.City, weather)
+				_ = n.cacheService.Write(sub.City, weather)
 			}
 
-			token, err := n.tokenService.CreateToken(sub.ID, ctx_)
+			token, err := n.tokenService.CreateToken(sub.ID, ctx)
 			if err != nil {
 				return
 			}

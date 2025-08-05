@@ -2,10 +2,11 @@ package controllers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"net/http"
 )
 
 type (
@@ -43,7 +44,7 @@ func (s *SubscriptionController) Subscribe(ctx *gin.Context) {
 	}
 
 	if err := s.SubscriptionService.Subscribe(subscription, ctx); err != nil {
-		ctx.JSON(300, gin.H{"status": err.Error()})
+		ctx.JSON(400, gin.H{"status": err.Error()})
 		return
 	}
 

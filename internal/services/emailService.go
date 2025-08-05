@@ -11,6 +11,11 @@ import (
 	"github.com/sendgrid/sendgrid-go/helpers/mail"
 )
 
+const (
+	CONFIRMATION_TEMPLATE = "templates/confirmationMail.tmpl"
+	WEATHER_TEMPLATE      = "templates/weatherMail.tmpl"
+)
+
 type (
 	MailingService struct {
 		Provider             MailingProvider
@@ -36,12 +41,12 @@ func NewMailingService(mailProvider MailingProvider, config *config.Configuratio
 	var ms MailingService
 	ms.Provider = mailProvider
 
-	confirmationTemplate, err := NewConfirmationTemplate("templates/confirmationMail.tmpl")
+	confirmationTemplate, err := NewConfirmationTemplate(CONFIRMATION_TEMPLATE)
 	if err != nil {
 		return nil, err
 	}
 
-	weatherTemplate, err := NewWeatherTemplate("templates/weatherMail.tmpl")
+	weatherTemplate, err := NewWeatherTemplate(WEATHER_TEMPLATE)
 	if err != nil {
 		return nil, err
 	}

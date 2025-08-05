@@ -3,6 +3,7 @@ package persistance
 import (
 	"context"
 	"errors"
+
 	"github.com/Rabiann/weather-mailer/internal/models"
 	"gorm.io/gorm"
 )
@@ -41,7 +42,7 @@ func (s *SubscriptionRepository) ActivateSubscription(id uint, ctx context.Conte
 	var subscription models.Subscription
 	subscription.ID = id
 
-	result := s.Db.Find(&subscription)
+	result := s.Db.WithContext(ctx).Find(&subscription)
 	if result.Error != nil {
 		return "", result.Error
 	}
