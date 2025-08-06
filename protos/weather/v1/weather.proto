@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "github.com/Rabiann/weather-mailer/pkg/go/user/v1/internal/protos";
+
+service WeatherService {
+    rpc GetWeather(WeatherRequest) returns (WeatherReply) {}
+}
+
+message WeatherRequest {
+    string city = 1;
+}
+
+message WeatherReply {
+    float temperature = 1;
+    float humidity = 2;
+    string description = 3;
+}

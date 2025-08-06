@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option go_package = "github.com/Rabiann/weather-mailer/pkg/go/user/v1/internal/protos";
+import "google/protobuf/empty.proto";
+
+service UserService {
+    rpc AddSubscription(SubscriptionRequest) returns (SubscriptionReply) {}
+    rpc ActivateSubscription(ActivateRequest) returns (ActivateReply) {}
+    rpc GetActiveSubscriptions(PeriodRequest) returns (ActiveReply) {}
+    rpc UpdateSubscription(UpdateRequest) returns (google.protobuf.Empty) {}
+    rpc DeleteSubscription(DeleteRequest) returns (google.protobuf.Empty) {}
+
+    rpc CreateToken(CreateTokenRequest) returns (TokenReply) {}
+    rpc GetSubscriptionOfToken(GetSubOfToken) returns (SubReply) {}
+    rpc UseToken(UseTokenRequest) returns (google.protobuf.Empty) {}
+}
+
+message CreateTokenRequest {
+    int32 subscriptionId = 1;
+}
+
+message TokenReply {
+    string uuid = 1;
+}
+
+message GetSubOfToken {
+    string uuid = 1;
+}
+
+message SubReply {
+    int32 sub = 1;
+}
+
+message UseTokenRequest {
+    string uuid = 1;
+}
+
+message SubscriptionRequest {
+    string email = 1;
+    string city = 2;
+    string period = 3;
+}
+
+message SubscriptionReply {
+    int32 id = 1;
+}
+
+message ActivateRequest {
+    int32 id = 1;
+}
+
+message ActivateReply {
+    string id = 1;
+}
+
+message PeriodRequest {
+    string period = 1;
+}
+
+message ActiveReply {
+    repeated ActiveSubscriber subscriptions = 1;
+}
+
+message ActiveSubscriber {
+    int32 id = 1;
+    string email = 2;
+    string city = 3;
+    string period = 4;
+}
+
+message UpdateRequest {
+    int32 id = 1;
+    SubscriptionRequest subscriber = 2;
+}
+
+message DeleteRequest {
+    int32 id = 1;
+}

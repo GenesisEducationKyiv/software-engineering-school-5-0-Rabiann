@@ -1,4 +1,26 @@
 services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
   redis:
     image: redis:latest
     healthcheck:
@@ -32,23 +54,46 @@ services:
 
   api:
     container_name: subscriptions_api
-    build: .
-    environment:
-      POSTGRES_HOST: subscriptions_db
-      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      WEATHER_API_KEY: ${WEATHER_API_KEY}
-      WEATHER_MAP_API: ${WEATHER_MAP_API}
-      WEATHER_STACK_KEY: ${WEATHER_STACK_KEY}
-    env_file:
-      - .env
+    build:
+      context: .
+      dockerfile: "./pkg/go/api/Dockerfile"
     depends_on:
-      postgres:
+      kafka:
         condition: service_healthy
     volumes:
       - .:/usr/src/build
     ports:
       - "8000:8000"
-    command: "./api"
+
+  notification:
+    container_name: subscriptions_notifications
+    build:
+      context: .
+      dockerfile: "./pkg/go/notification/Dockerfile"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - .:/usr/src/build
+
+  user:
+    container_name: subscriptions_user
+    build:
+      context: .
+      dockerfile: "./pkg/go/user/Dockerfile"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/usr/src/build
+
+  weather:
+    container_name: subscriptions_weather
+    build:
+      context: .
+      dockerfile: "./pkg/go/weather/Dockerfile"
+    volumes:
+      - .:/usr/src/build
 
 volumes:
   pgdata:
